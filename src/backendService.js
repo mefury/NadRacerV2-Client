@@ -104,25 +104,21 @@ export const getMonadUsernameFallback = async (walletAddress) => {
   }
 };
 
-// Configuration - Support both dev and preview modes
-const BACKEND_URL = (() => {
-  // In development mode
-  if (import.meta.env.DEV) {
-    return 'http://localhost:3001';
-  }
-  
-  // In preview mode or local production build
-  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-    return 'http://localhost:3001';
-  }
-  
-  // In production, use relative URLs (same origin)
+// API base URL configuration
+// Priority:
+// 1) VITE_API_BASE_URL (explicit)
+// 2) localhost:3001 in dev
+// 3) empty string for same-origin requests in prod
+const API_BASE_URL = (() => {
+  const fromEnv = (import.meta.env.VITE_API_BASE_URL || '').trim();
+  if (fromEnv) return fromEnv.replace(/\/$/, '');
+  if (import.meta.env.DEV) return 'http://localhost:3001';
   return '';
 })();
 
-// Debug logging for backend URL
-console.log('🔧 Backend URL configured as:', BACKEND_URL);
-console.log('🔧 Current hostname:', window.location.hostname);
+// Debug logging for API base URL
+console.log('🔧 API_BASE_URL:', API_BASE_URL);
+console.log('🔧 Current hostname:', typeof window !== 'undefined' ? window.location.hostname : 'n/a');
 console.log('🔧 DEV mode:', import.meta.env.DEV);
 
 /**
@@ -132,7 +128,7 @@ export const startGameSession = async (playerAddress) => {
   try {
     console.log('🎮 Starting game session for:', playerAddress);
 
-    const response = await fetch(`${BACKEND_URL}/api/start-game`, {
+const response = await fetch(`${API_BASE_URL}/api/start-game`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -165,7 +161,7 @@ export const submitPlayerScore = async (playerAddress, score, sessionId, transac
   try {
     console.log('📤 Submitting score to backend:', { playerAddress, score, sessionId, transactions });
 
-    const response = await fetch(`${BACKEND_URL}/api/submit-score`, {
+const response = await fetch(`${API_BASE_URL}/api/submit-score`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -223,7 +219,7 @@ export const getBlockchainLeaderboard = async (limit = 20) => {
 
     // Use backend proxy to avoid CORS issues
     const gameId = import.meta.env.VITE_LEADERBOARD_GAME_ID || 21;
-    const apiUrl = `${BACKEND_URL}/api/proxy/leaderboard?gameId=${gameId}`;
+const apiUrl = `${API_BASE_URL}/api/proxy/leaderboard?gameId=${gameId}`;
 
     const response = await fetch(apiUrl);
 
@@ -281,7 +277,7 @@ export const getBlockchainPlayerData = async (playerAddress) => {
   try {
     console.log('👤 Fetching blockchain player data for:', playerAddress);
 
-    const response = await fetch(`${BACKEND_URL}/api/player/${playerAddress}`);
+const response = await fetch(`${API_BASE_URL}/api/player/${playerAddress}`);
 
     if (response.ok) {
       const data = await response.json();

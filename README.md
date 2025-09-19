@@ -76,6 +76,7 @@ VITE_MONAD_USERNAME_API=https://www.monadclip.fun
 VITE_LEADERBOARD_GAME_ID=21
 VITE_CORS_PROXY_URL=https://api.allorigins.win/raw
 VITE_API_KEY=your_api_key_here
+VITE_API_BASE_URL= # e.g., https://api.nadracer.com (leave empty to use same-origin)
 ```
 
 ## 🏗️ Build
