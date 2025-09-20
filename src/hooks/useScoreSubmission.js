@@ -12,12 +12,16 @@ export function useScoreSubmission({
   const [submittingScore, setSubmittingScore] = useState(false);
   const [scoreSubmissionStatus, setScoreSubmissionStatus] = useState(null); // null | 'success' | 'error'
   const [scoreSubmissionMessage, setScoreSubmissionMessage] = useState('');
+  const [scoreSubmissionTxHash, setScoreSubmissionTxHash] = useState(null);
+
+  const isValidTxHash = (h) => typeof h === 'string' && /^0x[a-fA-F0-9]{64}$/.test(h);
 
   // Helper to reset state (e.g., when resetting game)
   const resetSubmission = () => {
     setSubmittingScore(false);
     setScoreSubmissionStatus(null);
     setScoreSubmissionMessage('');
+    setScoreSubmissionTxHash(null);
   };
 
   useEffect(() => {
@@ -38,9 +42,10 @@ export function useScoreSubmission({
             if (result.queued) {
               // Score was queued for processing
               setScoreSubmissionStatus('success');
-              if (result.transactionHash) {
+              if (isValidTxHash(result.transactionHash)) {
                 console.log('🎉 Transaction hash available immediately:', result.transactionHash);
-                setScoreSubmissionMessage(`Score submitted! 🎉 TX: ${result.transactionHash.slice(0, 10)}...${result.transactionHash.slice(-8)}`);
+                setScoreSubmissionTxHash(result.transactionHash);
+                setScoreSubmissionMessage('Score submitted to blockchain! 🎉');
                 return; // Don't start polling if we already have the hash
               } else {
                 setScoreSubmissionMessage('Score queued for submission! 📋 Processing...');
@@ -66,19 +71,28 @@ export function useScoreSubmission({
                   }
 
                   if (queueStatus?.notFound) {
-                    // Stop polling silently on 404s
+                    // Keep polling on 404 for a short window in case item is in-flight and not visible yet
+                    setTimeout(() => pollForCompletion(queueId, attempts + 1), 1000);
                     return;
                   }
 
-                  if (queueStatus.success && queueStatus.transactionHash) {
+                  if (queueStatus.success && isValidTxHash(queueStatus.transactionHash)) {
                     console.log('✅ Transaction hash found in queue!');
-                    setScoreSubmissionMessage(`Score submitted! 🎉 TX: ${queueStatus.transactionHash.slice(0, 10)}...${queueStatus.transactionHash.slice(-8)}`);
+                    setScoreSubmissionTxHash(queueStatus.transactionHash);
+                    setScoreSubmissionMessage('Score submitted to blockchain! 🎉');
                     return;
                   }
 
                   if (queueStatus.status === 'completed') {
                     console.log('✅ Queue item completed');
-                    setScoreSubmissionMessage('Score submitted to blockchain! 🎉');
+                    if (isValidTxHash(queueStatus.transactionHash)) {
+                      setScoreSubmissionTxHash(queueStatus.transactionHash);
+                      setScoreSubmissionMessage('Score submitted to blockchain! 🎉');
+                    } else {
+                      setScoreSubmissionMessage('Score submitted to blockchain! 🎉');
+                    }
+                    // Refresh leaderboard on completion
+                    try { await onLeaderboardRefresh?.(); } catch {}
                     return;
                   }
 
@@ -97,8 +111,9 @@ export function useScoreSubmission({
             } else {
               // Score processed immediately
               setScoreSubmissionStatus('success');
-              if (result.transactionHash) {
-                setScoreSubmissionMessage(`Score submitted! 🎉 TX: ${result.transactionHash.slice(0, 10)}...${result.transactionHash.slice(-8)}`);
+              if (isValidTxHash(result.transactionHash)) {
+                setScoreSubmissionTxHash(result.transactionHash);
+                setScoreSubmissionMessage('Score submitted to blockchain! 🎉');
               } else {
                 setScoreSubmissionMessage('Score submitted to blockchain! 🎉');
               }
@@ -133,6 +148,7 @@ export function useScoreSubmission({
     submittingScore,
     scoreSubmissionStatus,
     scoreSubmissionMessage,
+    scoreSubmissionTxHash,
     resetSubmission,
   };
 }

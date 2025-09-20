@@ -7,6 +7,7 @@ function GameOverOverlay({
   submittingScore,
   scoreSubmissionStatus,
   scoreSubmissionMessage,
+  transactionHash,
   onPlayAgain,
 }) {
   return (
@@ -41,6 +42,20 @@ function GameOverOverlay({
                 : 'bg-red-500/10 border-red-500/30 text-red-400'
             }`}>
               <p className="text-sm font-medium">{scoreSubmissionMessage}</p>
+              {typeof transactionHash === 'string' && /^0x[a-fA-F0-9]{64}$/.test(transactionHash) && (
+                <div className="mt-2 text-xs break-all">
+                  <a
+                    href={`https://testnet.monadexplorer.com/tx/${transactionHash}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title={transactionHash}
+                    className="underline text-primary hover:text-primary/80 font-mono"
+                    aria-label="View transaction on Monad explorer"
+                  >
+                    TX: {transactionHash.slice(0, 10)}...{transactionHash.slice(-8)}
+                  </a>
+                </div>
+              )}
             </div>
           )}
 

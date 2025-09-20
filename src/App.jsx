@@ -70,7 +70,7 @@ function App() {
   const { monadWalletAddress, monadUsername, hasUsername, blockchainHighScore, loadingScore } = useMonadUser(user);
 
   // Score submission
-  const { submittingScore, scoreSubmissionStatus, scoreSubmissionMessage, resetSubmission } = useScoreSubmission({
+  const { submittingScore, scoreSubmissionStatus, scoreSubmissionMessage, scoreSubmissionTxHash, resetSubmission } = useScoreSubmission({
     gameState,
     monadWalletAddress,
     score,
@@ -190,6 +190,7 @@ function App() {
             submittingScore={submittingScore}
             scoreSubmissionStatus={scoreSubmissionStatus}
             scoreSubmissionMessage={scoreSubmissionMessage}
+            transactionHash={scoreSubmissionTxHash}
             onPlayAgain={resetGame}
           />
         )}
