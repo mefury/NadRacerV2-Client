@@ -21,6 +21,8 @@ import AboutDialog from '@/components/AboutDialog';
 import UsernameRequiredDialog from '@/components/UsernameRequiredDialog';
 import StartScreen from '@/screens/StartScreen.jsx';
 import ShipSelectScreen from '@/screens/ShipSelectScreen.jsx';
+import PlayingHud from '@/screens/PlayingHud.jsx';
+import GameOverScreen from '@/screens/GameOverScreen.jsx';
 import { APP_VERSION, SHIP_OPTIONS } from '@/constants/game.js';
 import { useFps } from '@/hooks/useFps.js';
 import { useLeaderboard } from '@/hooks/useLeaderboard.js';
@@ -394,115 +396,16 @@ import { useScoreSubmission } from '@/hooks/useScoreSubmission.js';
   // Game over screen
   if (gameState === "gameover") {
     return (
-      <div className="relative w-screen h-screen overflow-hidden">
-        <BackgroundScene />
-        <div className="absolute inset-0 flex flex-col items-center justify-center z-10 p-6">
-          <Card className="max-w-md w-full bg-background/90 backdrop-blur-sm border-primary/30">
-            <CardHeader className="text-center">
-              <CardTitle className="text-3xl text-primary mb-2">GAME OVER</CardTitle>
-              <p className="text-muted-foreground">Mission Complete</p>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="text-center">
-                <p className="text-2xl font-bold text-primary mb-2">SCORE: {score.toLocaleString()}</p>
-                <p className="text-foreground/90">Coins Collected: {collectedCoins}</p>
-              </div>
-
-              {/* Score Submission Status */}
-              {submittingScore && (
-                <div className="text-center py-4">
-                  <div className="w-8 h-8 border-3 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
-                  <p className="text-foreground/90 text-sm">Submitting score to blockchain...</p>
-                </div>
-              )}
-
-              {scoreSubmissionStatus && !submittingScore && (
-                <div className={`text-center py-3 px-4 rounded-lg border ${
-                  scoreSubmissionStatus === 'success'
-                    ? 'bg-green-500/10 border-green-500/30 text-green-400'
-                    : 'bg-red-500/10 border-red-500/30 text-red-400'
-                }`}>
-                  <p className="text-sm font-medium">{scoreSubmissionMessage}</p>
-                </div>
-              )}
-
-              <div className="space-y-3">
-                <Button onClick={resetGame} className="w-full" size="lg">
-                  Play Again
-                </Button>
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button variant="outline" className="w-full" size="lg">
-                      View Leaderboard
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-4xl bg-background/95 backdrop-blur-md border-primary/30">
-                    <DialogHeader>
-                      <DialogTitle className="text-3xl text-center text-primary mb-4">🏆 TOP PILOTS</DialogTitle>
-                      <DialogDescription className="text-center text-muted-foreground">
-                        View the highest scoring pilots in NAD RACER
-                      </DialogDescription>
-                    </DialogHeader>
-                    {leaderboardLoading ? (
-                      <div className="text-center py-12">
-                        <div className="w-12 h-12 border-3 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-6"></div>
-                        <p className="text-foreground/90 text-lg">Loading leaderboard...</p>
-                      </div>
-                    ) : leaderboard.length > 0 ? (
-                      <ScrollArea className="h-96 w-full">
-                        <Table>
-                          <TableHeader>
-                            <TableRow className="border-primary/30">
-                              <TableHead className="w-20 text-primary font-bold text-lg">RANK</TableHead>
-                              <TableHead className="text-primary font-bold text-lg">PILOT</TableHead>
-                              <TableHead className="text-right text-primary font-bold text-lg">SCORE</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {leaderboard.map((entry, index) => (
-                              <TableRow key={index} className="hover:bg-primary/5 border-primary/20">
-                                <TableCell className="flex items-center py-4">
-                                  <Badge
-                                    variant={index < 3 ? "default" : "secondary"}
-                                    className={`mr-3 ${index === 0 ? 'bg-gold' : index === 1 ? 'bg-silver' : index === 2 ? 'bg-bronze' : ''}`}
-                                  >
-                                    {index === 0 && "🥇"}
-                                    {index === 1 && "🥈"}
-                                    {index === 2 && "🥉"}
-                                    {index > 2 && (index + 1)}
-                                  </Badge>
-                                </TableCell>
-                                <TableCell className="py-4">
-                                  <div className="flex items-center gap-3">
-                                    <Avatar className="w-8 h-8">
-                                      <AvatarFallback className="bg-primary/20 text-primary text-sm">
-                                        {entry.username.charAt(0).toUpperCase()}
-                                      </AvatarFallback>
-                                    </Avatar>
-                                    <span className="text-lg font-semibold text-foreground">{entry.username}</span>
-                                  </div>
-                                </TableCell>
-                                <TableCell className="text-right py-4">
-                                  <span className="text-xl font-mono font-bold text-primary">{entry.score.toLocaleString()}</span>
-                                </TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      </ScrollArea>
-                    ) : (
-                      <div className="text-center py-12">
-                        <p className="text-foreground/80 text-lg">No scores submitted yet</p>
-                        <p className="text-muted-foreground text-sm mt-2">Be the first to set a high score!</p>
-                      </div>
-                    )}
-                  </DialogContent>
-                </Dialog>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+      <GameOverScreen
+        score={score}
+        collectedCoins={collectedCoins}
+        submittingScore={submittingScore}
+        scoreSubmissionStatus={scoreSubmissionStatus}
+        scoreSubmissionMessage={scoreSubmissionMessage}
+        onPlayAgain={resetGame}
+        leaderboard={leaderboard}
+        leaderboardLoading={leaderboardLoading}
+      />
     );
   }
 
@@ -536,74 +439,7 @@ import { useScoreSubmission } from '@/hooks/useScoreSubmission.js';
           onObstacleHit={handleObstacleHit}
         />
 
-        {/* Game HUD */}
-        <Card className="absolute top-4 left-4 bg-background/80 backdrop-blur-sm border-primary/30 shadow-[0_0_15px_hsl(var(--primary)/0.2)] z-10">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-6">
-              <div className="text-center">
-                <div className="text-4xl md:text-5xl text-primary font-bold font-mono">
-                  {score.toLocaleString()}
-                </div>
-                <p className="text-xs uppercase text-muted-foreground mt-1">SCORE</p>
-              </div>
-              <div className="text-center">
-                <div className="flex gap-1 mb-2 justify-center">
-                  {Array(9).fill().map((_, i) => (
-                    <div
-                      key={i}
-                      className={`w-2 h-6 rounded-full transition-colors duration-200 ${
-                        i < health * 3 ? getHealthColor(health) : "bg-muted"
-                      }`}
-                    ></div>
-                  ))}
-                </div>
-                <p className="text-xs uppercase text-foreground font-semibold">HEALTH</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* FPS Counter */}
-        <Badge
-          variant="outline"
-          className="absolute top-36 left-4 text-xs text-foreground border-primary/30 bg-background/80 backdrop-blur-sm"
-        >
-          FPS: {fps}
-        </Badge>
-
-        {/* Mobile Controls */}
-        <div className="fixed bottom-12 left-1/2 transform -translate-x-1/2 z-50 flex justify-between w-11/12 max-w-md md:hidden gap-4">
-          <Button
-            variant="outline"
-            size="lg"
-            className="w-20 h-20 rounded-full border-2 border-primary/50 bg-transparent shadow-[0_0_10px_hsl(var(--primary)/0.3)] hover:bg-primary/10 active:bg-primary/20 p-0"
-            onTouchStart={(e) => { e.preventDefault(); controlsRef.current.left = true; }}
-            onTouchEnd={(e) => { e.preventDefault(); controlsRef.current.left = false; }}
-            aria-label="Move left"
-          >
-            <img src="/svg/left.svg" alt="Left" className="w-20 h-20" />
-          </Button>
-          <Button
-            variant="outline"
-            size="lg"
-            className="w-20 h-20 rounded-full border-2 border-primary/50 bg-transparent shadow-[0_0_10px_hsl(var(--primary)/0.3)] hover:bg-primary/10 active:bg-primary/20 p-0"
-            onTouchStart={(e) => { e.preventDefault(); controlsRef.current.boost = true; }}
-            onTouchEnd={(e) => { e.preventDefault(); controlsRef.current.boost = false; }}
-            aria-label="Boost"
-          >
-            <img src="/svg/fire.svg" alt="Boost" className="w-20 h-20" />
-          </Button>
-          <Button
-            variant="outline"
-            size="lg"
-            className="w-20 h-20 rounded-full border-2 border-primary/50 bg-transparent shadow-[0_0_10px_hsl(var(--primary)/0.3)] hover:bg-primary/10 active:bg-primary/20 p-0"
-            onTouchStart={(e) => { e.preventDefault(); controlsRef.current.right = true; }}
-            onTouchEnd={(e) => { e.preventDefault(); controlsRef.current.right = false; }}
-            aria-label="Move right"
-          >
-            <img src="/svg/right.svg" alt="Right" className="w-20 h-20" />
-          </Button>
-        </div>
+        <PlayingHud score={score} health={health} fps={fps} controlsRef={controlsRef} />
       </div>
     );
   }
