@@ -1,7 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
-import ErrorBoundary from './ErrorBoundary';
 import { PrivyAppProvider } from './PrivyProvider';
 import AuthGuard from './AuthGuard';
 import './index.css';
@@ -39,12 +38,10 @@ if (!window.DEBUG) {
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <ErrorBoundary>
-      <PrivyAppProvider>
-        <AuthGuard>
-          <App />
-        </AuthGuard>
-      </PrivyAppProvider>
-    </ErrorBoundary>
+    <PrivyAppProvider>
+      <AuthGuard>
+        <App />
+      </AuthGuard>
+    </PrivyAppProvider>
   </React.StrictMode>
 );
