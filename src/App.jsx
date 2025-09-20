@@ -1,12 +1,11 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useRef, memo, useMemo } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { usePrivy } from '@privy-io/react-auth';
-import { getBlockchainLeaderboard, getMonadUsername, getBlockchainPlayerData, submitPlayerScore, startGameSession, clearLeaderboardCache } from './backendService.js';
+import { startGameSession } from './backendService.js';
 import { audioSystem } from './audioSystem.js';
 import RacingScene from './racingscene.jsx';
 import BackgroundScene from './background.jsx';
-import ShipPreview from './ShipPreview.jsx';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -14,8 +13,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Toggle } from '@/components/ui/toggle';
-import { Play, Pause, User, Trophy, Info, LogOut, ExternalLink } from 'lucide-react';
+import { Play, Pause, User, Trophy, Info, LogOut } from 'lucide-react';
 import Dock from '@/components/Dock';
 import ProfileDialog from '@/components/ProfileDialog';
 import LeaderboardDialog from '@/components/LeaderboardDialog';
@@ -25,12 +23,11 @@ import StartScreen from '@/screens/StartScreen.jsx';
 import ShipSelectScreen from '@/screens/ShipSelectScreen.jsx';
 import { APP_VERSION, SHIP_OPTIONS } from '@/constants/game.js';
 import { useFps } from '@/hooks/useFps.js';
-
-function App() {
+import { useLeaderboard } from '@/hooks/useLeaderboard.js';
+import { useMonadUser } from '@/hooks/useMonadUser.js';
+import { useScoreSubmission } from '@/hooks/useScoreSubmission.js';
   const { user, logout } = usePrivy();
 
-
-  const [monadWalletAddress, setMonadWalletAddress] = useState(null);
   const [gameState, setGameState] = useState("start"); // start, shipselect, playing, gameover
   const [score, setScore] = useState(0);
   const [health, setHealth] = useState(3);
@@ -42,24 +39,21 @@ function App() {
   const [assetsLoaded, setAssetsLoaded] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Leaderboard state
-  const [leaderboard, setLeaderboard] = useState([]);
-  const [leaderboardLoading, setLeaderboardLoading] = useState(false);
-  const [currentSection, setCurrentSection] = useState("play");
+  // Leaderboard
+  const { leaderboard, leaderboardLoading, refresh: refreshLeaderboard } = useLeaderboard();
 
-  // Player data
-  const [monadUsername, setMonadUsername] = useState('Loading...');
-  const [blockchainHighScore, setBlockchainHighScore] = useState(0);
-  const [loadingScore, setLoadingScore] = useState(false);
-  const [hasUsername, setHasUsername] = useState(false);
+  // Player data and Monad wallet
+  const { monadWalletAddress, monadUsername, hasUsername, blockchainHighScore, loadingScore } = useMonadUser(user);
 
-  // Score submission state
-  const [submittingScore, setSubmittingScore] = useState(false);
-  const [scoreSubmissionStatus, setScoreSubmissionStatus] = useState(null); // null, 'success', 'error'
-  const [scoreSubmissionMessage, setScoreSubmissionMessage] = useState('');
-
-  // Game session state for anti-cheat
-  const [gameSessionId, setGameSessionId] = useState(null);
+  // Score submission
+  const [gameSessionId, setGameSessionId] = useState(null); // anti-cheat
+  const { submittingScore, scoreSubmissionStatus, scoreSubmissionMessage, resetSubmission } = useScoreSubmission({
+    gameState,
+    monadWalletAddress,
+    score,
+    gameSessionId,
+    onLeaderboardRefresh: refreshLeaderboard,
+  });
 
   // Audio toggle state
   const [isAudioEnabled, setIsAudioEnabled] = useState(false);
@@ -183,180 +177,10 @@ function App() {
 
   // Refs
   const controlsRef = useRef({ left: false, right: false, boost: false });
-  const fpsRef = useRef({ frames: 0, lastTime: performance.now() });
   
-  // Fetch leaderboard data on component mount
-  useEffect(() => {
-    const fetchLeaderboard = async () => {
-      setLeaderboardLoading(true);
-      try {
-        const data = await getBlockchainLeaderboard();
-        setLeaderboard(data);
-      } catch (error) {
-        console.error("Failed to fetch leaderboard:", error);
-        setLeaderboard([]);
-      } finally {
-        setLeaderboardLoading(false);
-      }
-    };
 
-    fetchLeaderboard();
-  }, []);
 
-  // Extract Monad wallet address from cross-app account
-  useEffect(() => {
-    if (user?.linkedAccounts?.length > 0) {
-      const crossAppAccount = user.linkedAccounts.find(
-        account => account.type === "cross_app" &&
-        account.providerApp?.id === import.meta.env.VITE_MONAD_APP_ID
-      );
 
-      if (crossAppAccount?.embeddedWallets?.length > 0) {
-        const walletIndex = crossAppAccount.embeddedWallets.length > 1 ? 1 : 0;
-        const walletAddress = crossAppAccount.embeddedWallets[walletIndex].address;
-        setMonadWalletAddress(walletAddress);
-      }
-    }
-  }, [user]);
-
-  // Fetch player data when wallet address changes
-  useEffect(() => {
-    const fetchPlayerData = async () => {
-      if (monadWalletAddress) {
-        try {
-          const username = await getMonadUsername(monadWalletAddress);
-          if (username === 'No Username') {
-            setMonadUsername('Pilot');
-            setHasUsername(false);
-          } else if (username && username !== 'Pilot') {
-            setMonadUsername(username);
-            setHasUsername(true);
-          } else {
-            setMonadUsername('Pilot');
-            setHasUsername(false);
-          }
-
-          setLoadingScore(true);
-          const playerData = await getBlockchainPlayerData(monadWalletAddress);
-          setBlockchainHighScore(playerData.gameScore || 0);
-          setLoadingScore(false);
-        } catch (error) {
-          console.error('Failed to fetch player data:', error);
-          setMonadUsername('Pilot');
-          setBlockchainHighScore(0);
-          setLoadingScore(false);
-        }
-      }
-    };
-
-    fetchPlayerData();
-  }, [monadWalletAddress]);
-
-  // Submit score when game ends (when gameState becomes "gameover")
-  useEffect(() => {
-    const submitScoreOnGameOver = async () => {
-      if (gameState === "gameover" && monadWalletAddress && score > 0 && !submittingScore && scoreSubmissionStatus === null) {
-        console.log('🎮 Game over detected - submitting score to blockchain');
-        setSubmittingScore(true);
-        setScoreSubmissionStatus(null);
-
-        try {
-          console.log('🚀 Submitting score to blockchain:', { playerAddress: monadWalletAddress, score, sessionId: gameSessionId });
-          const result = await submitPlayerScore(monadWalletAddress, score, gameSessionId, 1);
-          console.log('✅ Score submission result:', result);
-          console.log('📋 Transaction hash in result:', result?.transactionHash);
-
-          if (result && result.success) {
-            if (result.queued) {
-              // Score was queued for processing
-              setScoreSubmissionStatus('success');
-              if (result.transactionHash) {
-                console.log('🎉 Transaction hash available immediately:', result.transactionHash);
-                setScoreSubmissionMessage(`Score submitted! 🎉 TX: ${result.transactionHash.slice(0, 10)}...${result.transactionHash.slice(-8)}`);
-                return; // Don't start polling if we already have the hash
-              } else {
-                setScoreSubmissionMessage('Score queued for submission! 📋 Processing...');
-              }
-
-              // Poll for completion status using queue item status
-              const pollForCompletion = async (queueId, attempts = 0) => {
-                if (attempts >= 15) { // Stop polling after 15 seconds (15 * 1s)
-                  setScoreSubmissionMessage('Score submission completed successfully!');
-                  return;
-                }
-
-                try {
-                  // Check queue item status for transaction hash
-                  const response = await fetch(`${BACKEND_URL}/api/queue/item/${queueId}`);
-                  const queueStatus = await response.json();
-
-                  console.log('🔍 Queue polling check:', {
-                    queueId,
-                    status: queueStatus.status,
-                    transactionHash: queueStatus.transactionHash,
-                    attempts: attempts + 1
-                  });
-
-                  if (queueStatus.success && queueStatus.transactionHash) {
-                    // Transaction hash is now available!
-                    console.log('✅ Transaction hash found in queue!');
-                    setScoreSubmissionMessage(`Score submitted! 🎉 TX: ${queueStatus.transactionHash.slice(0, 10)}...${queueStatus.transactionHash.slice(-8)}`);
-                    return;
-                  }
-
-                  if (queueStatus.status === 'completed') {
-                    // Queue item completed but no transaction hash (shouldn't happen)
-                    console.log('✅ Queue item completed');
-                    setScoreSubmissionMessage('Score submitted to blockchain! 🎉');
-                    return;
-                  }
-
-                  // Continue polling
-                  setTimeout(() => pollForCompletion(queueId, attempts + 1), 1000);
-                } catch (error) {
-                  console.warn('Error polling queue status:', error.message);
-                  setTimeout(() => pollForCompletion(queueId, attempts + 1), 1000);
-                }
-              };
-
-              // Start polling after a shorter delay for testing
-              setTimeout(() => pollForCompletion(result.queueId), 1000);
-
-            } else {
-              // Score was processed immediately
-              setScoreSubmissionStatus('success');
-              if (result.transactionHash) {
-                setScoreSubmissionMessage(`Score submitted! 🎉 TX: ${result.transactionHash.slice(0, 10)}...${result.transactionHash.slice(-8)}`);
-              } else {
-                setScoreSubmissionMessage('Score submitted to blockchain! 🎉');
-              }
-
-              // Refresh leaderboard data after successful submission (with delay to allow blockchain processing)
-              setTimeout(async () => {
-                try {
-                  const updatedLeaderboard = await getBlockchainLeaderboard();
-                  setLeaderboard(updatedLeaderboard);
-                } catch (error) {
-                  console.warn('Failed to refresh leaderboard after submission:', error.message);
-                }
-              }, 5000); // Increased delay to 5 seconds
-            }
-          } else {
-            setScoreSubmissionStatus('error');
-            setScoreSubmissionMessage(result?.message || 'Failed to submit score');
-          }
-        } catch (error) {
-          console.error('❌ Score submission error:', error);
-          setScoreSubmissionStatus('error');
-          setScoreSubmissionMessage('Network error - score not submitted');
-        } finally {
-          setSubmittingScore(false);
-        }
-      }
-    };
-
-    submitScoreOnGameOver();
-  }, [gameState, monadWalletAddress, score, submittingScore, scoreSubmissionStatus]);
 
   // Game functions
   const startGame = () => {
@@ -374,11 +198,8 @@ function App() {
 
   const resetGame = () => {
     setGameState("start");
-    setCurrentSection("play");
     // Reset score submission status
-    setSubmittingScore(false);
-    setScoreSubmissionStatus(null);
-    setScoreSubmissionMessage('');
+    resetSubmission();
     // Clear game session
     setGameSessionId(null);
     if (controlsRef.current) {
