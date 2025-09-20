@@ -31,26 +31,6 @@ export const CONFIG = {
       ROTATION_Z: 0,                           // Initial Z rotation (no roll)
       ROLL_AXIS: "z",                          // Axis for rolling effect (Z for horizontal tilt)
     },
-    SHIP_2: {
-      USE_CUSTOM_GEOMETRY: true,  // Flag to use custom Three.js geometry instead of GLTF
-      SHIP_TYPE: 'bumble',        // Type identifier for the custom ship
-      TARGET_LENGTH: 6.0,                      // Desired length of the ship model after scaling
-      TARGET_WIDTH: 3.0,                       // Desired width of the ship model after scaling
-      TARGET_HEIGHT: 1.2,                      // Desired height of the ship model after scaling
-      SCALE: 2,                             // Base scaling factor for the custom model
-      COLLISION_RADIUS: 5.0,                   // Radius for collision detection with obstacles and coins
-      POSITION_X: 0.0,                         // Initial X position of the ship (centered)
-      POSITION_Y: 1,                           // Initial Y position (height above track)
-      POSITION_Z: 0,                           // Initial Z position (starting point)
-      ROTATION_X: 0,                           // Initial X rotation in radians (no tilt)
-      ROTATION_Y: 0,                          // Initial Y rotation in radians (forward)
-      ROTATION_Z: 0,                           // Initial Z rotation (no roll)
-      ROLL_AXIS: "z",                          // Axis for rolling effect (Z for horizontal tilt)
-      USE_LOW_DETAIL: true,                    // Flag to use lower detail rendering for performance
-      OPTIMIZE_MATERIALS: true,                // Flag to apply material optimizations
-      TEXTURE_QUALITY: 'low',                  // Use lower quality textures
-      SHADOW_CASTING: false,                   // Disable shadow casting for better performance
-    },
   },
 
   // --- Movement and Physics ---

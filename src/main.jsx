@@ -37,11 +37,9 @@ if (!window.DEBUG) {
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
-  <React.StrictMode>
-    <PrivyAppProvider>
-      <AuthGuard>
-        <App />
-      </AuthGuard>
-    </PrivyAppProvider>
-  </React.StrictMode>
+  <PrivyAppProvider>
+    <AuthGuard>
+      <App />
+    </AuthGuard>
+  </PrivyAppProvider>
 );

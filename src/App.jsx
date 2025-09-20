@@ -9,10 +9,9 @@ import LeaderboardDialog from '@/components/LeaderboardDialog';
 import AboutDialog from '@/components/AboutDialog';
 import UsernameRequiredDialog from '@/components/UsernameRequiredDialog';
 import StartScreen from '@/screens/StartScreen.jsx';
-import ShipSelectScreen from '@/screens/ShipSelectScreen.jsx';
 import PlayingHud from '@/screens/PlayingHud.jsx';
 import GameOverScreen from '@/screens/GameOverScreen.jsx';
-import { APP_VERSION, SHIP_OPTIONS } from '@/constants/game.js';
+import { APP_VERSION } from '@/constants/game.js';
 import { useFps } from '@/hooks/useFps.js';
 import { useLeaderboard } from '@/hooks/useLeaderboard.js';
 import { useMonadUser } from '@/hooks/useMonadUser.js';
@@ -27,7 +26,6 @@ function App() {
   const [gameState, setGameState] = useState("start"); // start, shipselect, playing, gameover
   const [score, setScore] = useState(0);
   const [health, setHealth] = useState(3);
-  const [selectedShip, setSelectedShip] = useState("SHIP_1");
   const [collectedCoins, setCollectedCoins] = useState(0);
   const [fps, setFps] = useState(0);
 
@@ -74,7 +72,8 @@ function App() {
       setShowUsernameRequired(true);
       return;
     }
-    setGameState("shipselect");
+    // Directly start the game with the default Speeder ship
+    startPlaying();
   };
 
   const endGame = () => {
@@ -93,9 +92,6 @@ function App() {
     }
   };
 
-  const handleShipSelect = async (shipId) => {
-    setSelectedShip(shipId);
-  };
 
   const startPlaying = async () => {
     try {
@@ -158,18 +154,6 @@ function App() {
     );
   }
 
-  // Ship selection screen
-  if (gameState === "shipselect") {
-    return (
-      <ShipSelectScreen
-        shipOptions={SHIP_OPTIONS}
-        selectedShip={selectedShip}
-        onSelect={handleShipSelect}
-        onLaunch={startPlaying}
-        onBack={() => setGameState("start")}
-      />
-    );
-  }
 
   // Playing screen
   if (gameState === "playing") {
@@ -183,7 +167,7 @@ function App() {
           endGame={endGame}
           gameState={gameState}
           controlsRef={controlsRef}
-          selectedShip={selectedShip}
+          selectedShip={'SHIP_1'}
           onCoinCollect={handleGameCoinCollection}
           onObstacleHit={handleObstacleHit}
         />

@@ -334,7 +334,7 @@ function BackgroundScene() {
       scene.add(stars);
     });
 
-    // Animation Loop
+    // Animation Loop using requestAnimationFrame so we can cancel on unmount
     const animate = () => {
       animationIdRef.current = requestAnimationFrame(animate);
       const delta = clockRef.current.getDelta() * CONFIG.TIME_ACCELERATION;
@@ -384,6 +384,7 @@ function BackgroundScene() {
 
     return () => {
       window.removeEventListener("resize", handleResize);
+      // Stop animation loop
       if (animationIdRef.current) {
         cancelAnimationFrame(animationIdRef.current);
         animationIdRef.current = null;
