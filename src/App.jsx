@@ -19,6 +19,9 @@ import { useMonadUser } from '@/hooks/useMonadUser.js';
 import { useScoreSubmission } from '@/hooks/useScoreSubmission.js';
 import { useAudio } from '@/hooks/useAudio.js';
 import { useGameSession } from '@/hooks/useGameSession.js';
+import { audioSystem } from './audioSystem.js';
+
+function App() {
   const { user, logout } = usePrivy();
 
   const [gameState, setGameState] = useState("start"); // start, shipselect, playing, gameover
@@ -41,7 +44,6 @@ import { useGameSession } from '@/hooks/useGameSession.js';
   const { monadWalletAddress, monadUsername, hasUsername, blockchainHighScore, loadingScore } = useMonadUser(user);
 
   // Score submission
-  const [gameSessionId, setGameSessionId] = useState(null); // anti-cheat
   const { submittingScore, scoreSubmissionStatus, scoreSubmissionMessage, resetSubmission } = useScoreSubmission({
     gameState,
     monadWalletAddress,
@@ -84,7 +86,6 @@ import { useGameSession } from '@/hooks/useGameSession.js';
     // Reset score submission status
     resetSubmission();
     // Clear game session
-    setGameSessionId(null);
     if (controlsRef.current) {
       controlsRef.current.left = false;
       controlsRef.current.right = false;
@@ -256,7 +257,6 @@ import { useGameSession } from '@/hooks/useGameSession.js';
         onPause={() => console.log('🎵 Audio paused - checking if this is expected')}
       />
     </>
-  );
   );
 }
 
