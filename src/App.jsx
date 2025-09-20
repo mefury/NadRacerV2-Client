@@ -21,16 +21,10 @@ import ProfileDialog from '@/components/ProfileDialog';
 import LeaderboardDialog from '@/components/LeaderboardDialog';
 import AboutDialog from '@/components/AboutDialog';
 import UsernameRequiredDialog from '@/components/UsernameRequiredDialog';
-import * as THREE from 'three';
-import { CONFIG } from './racingLogic.js';
-// App component for NAD RACER - Full Game with shadcn UI
-const APP_VERSION = "2.0.0 Beta";
-
-// Ship options for selection screen
-const SHIP_OPTIONS = [
-  { id: "SHIP_1", name: "Speeder", isFree: true },
-  { id: "SHIP_2", name: "Bumble Ship", isFree: true },
-];
+import StartScreen from '@/screens/StartScreen.jsx';
+import ShipSelectScreen from '@/screens/ShipSelectScreen.jsx';
+import { APP_VERSION, SHIP_OPTIONS } from '@/constants/game.js';
+import { useFps } from '@/hooks/useFps.js';
 
 function App() {
   const { user, logout } = usePrivy();
@@ -517,34 +511,7 @@ function App() {
   ], [isAudioEnabled, handleAudioToggle, logout]);
 
   // FPS tracking
-  const updateFps = useCallback(() => {
-    const now = performance.now();
-    const delta = now - fpsRef.current.lastTime;
-
-    fpsRef.current.frames++;
-
-    if (delta >= 1000) {
-      setFps(Math.round((fpsRef.current.frames * 1000) / delta));
-      fpsRef.current.frames = 0;
-      fpsRef.current.lastTime = now;
-    }
-  }, []);
-
-  useEffect(() => {
-    if (gameState !== "playing") return;
-
-    let animationFrameId;
-    const frameLoop = () => {
-      updateFps();
-      animationFrameId = requestAnimationFrame(frameLoop);
-    };
-
-    animationFrameId = requestAnimationFrame(frameLoop);
-
-    return () => {
-      cancelAnimationFrame(animationFrameId);
-    };
-  }, [gameState, updateFps]);
+  useFps(gameState === "playing", setFps);
 
   // Audio management
   useEffect(() => {
@@ -721,91 +688,13 @@ function App() {
   // Ship selection screen
   if (gameState === "shipselect") {
     return (
-      <div className="relative w-screen h-screen overflow-hidden">
-        <BackgroundScene />
-        <div className="absolute inset-0 flex flex-col items-center justify-center z-10 p-6">
-          <div className="max-w-4xl w-full">
-            <div className="text-center mb-8 relative">
-              {/* Back Button - Above Title */}
-              <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-12">
-                <Button
-                  onClick={() => setGameState("start")}
-                  variant="outline"
-                  size="sm"
-                  className="bg-background/80 backdrop-blur-sm border-primary/50 text-primary hover:bg-primary/10 hover:border-primary shadow-[0_0_10px_hsl(var(--primary)/0.3)] transition-all duration-300 w-10 h-10 p-0"
-                  aria-label="Go back to home"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                    className="w-5 h-5"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M11.03 3.97a.75.75 0 0 1 0 1.06l-6.22 6.22H21a.75.75 0 0 1 0 1.5H4.81l6.22 6.22a.75.75 0 1 1-1.06 1.06l-7.5-7.5a.75.75 0 0 1 0-1.06l7.5-7.5a.75.75 0 0 1 1.06 0Z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                </Button>
-              </div>
-
-              <h1 className="text-4xl md:text-6xl text-primary font-bold mb-4">SELECT YOUR SHIP</h1>
-              <div className="w-32 h-1 bg-gradient-to-r from-transparent via-primary to-transparent mx-auto"></div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-              {SHIP_OPTIONS.map((ship) => (
-                <Card
-                  key={ship.id}
-                  className={`cursor-pointer transition-all duration-300 transform hover:scale-105 ${
-                    selectedShip === ship.id
-                      ? 'border-primary shadow-[0_0_20px_hsl(var(--primary)/0.6)] bg-primary/5'
-                      : 'border-primary/30 hover:border-primary/60 bg-transparent'
-                  }`}
-                  onClick={() => handleShipSelect(ship.id)}
-                >
-                  <CardContent className="p-6">
-                    <div className="text-center">
-                      <div className="w-full h-32 mb-4 bg-muted/30 rounded-lg flex items-center justify-center">
-                        <ShipPreview shipId={ship.id} className="w-full h-full" />
-                      </div>
-                      <h3 className="text-xl font-bold text-white mb-2">{ship.name}</h3>
-                      <p className="text-white/80 text-sm">
-                        {ship.id === "SHIP_1" ? "Sleek and aerodynamic design" : "Rugged and distinctive styling"}
-                      </p>
-                      {selectedShip === ship.id && (
-                        <Badge className="mt-3 bg-primary text-primary-foreground">
-                          SELECTED
-                        </Badge>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-
-            <div className="text-center">
-              <Button
-                onClick={startPlaying}
-                size="lg"
-                className="h-16 md:h-20 text-lg md:text-2xl px-8 md:px-12 bg-gradient-to-r from-primary/20 to-primary/10 border-2 border-primary/50 text-white shadow-[0_0_20px_hsl(var(--primary)/0.4)] focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 focus:ring-offset-background"
-                aria-label="Start the NAD RACER mission"
-              >
-                <span className="flex items-center gap-2 md:gap-4 font-bold tracking-wider" style={{ fontFamily: 'Orbitron, sans-serif' }}>
-                  <img src="/svg/play.svg" alt="Play" className="w-6 h-6 md:w-8 md:h-8" />
-                  <span className="hidden sm:inline">LAUNCH MISSION</span>
-                  <span className="sm:hidden">LAUNCH</span>
-                  <div className="w-2 h-2 md:w-3 md:h-3 bg-primary rounded-full animate-pulse shadow-[0_0_6px_hsl(var(--primary)/0.8)]" aria-hidden="true"></div>
-                </span>
-              </Button>
-              <p className="text-white/70 text-sm mt-4">
-                All ships have identical performance
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
+      <ShipSelectScreen
+        shipOptions={SHIP_OPTIONS}
+        selectedShip={selectedShip}
+        onSelect={handleShipSelect}
+        onLaunch={startPlaying}
+        onBack={() => setGameState("start")}
+      />
     );
   }
 
@@ -813,20 +702,18 @@ function App() {
   if (gameState === "playing") {
     return (
       <div className="relative w-screen h-screen overflow-hidden">
-        <ErrorBoundary>
-          <RacingScene
-            score={score}
-            setScore={setScore}
-            setHealth={setHealth}
-            health={health}
-            endGame={endGame}
-            gameState={gameState}
-            controlsRef={controlsRef}
-            selectedShip={selectedShip}
-            onCoinCollect={handleGameCoinCollection}
-            onObstacleHit={handleObstacleHit}
-          />
-        </ErrorBoundary>
+        <RacingScene
+          score={score}
+          setScore={setScore}
+          setHealth={setHealth}
+          health={health}
+          endGame={endGame}
+          gameState={gameState}
+          controlsRef={controlsRef}
+          selectedShip={selectedShip}
+          onCoinCollect={handleGameCoinCollection}
+          onObstacleHit={handleObstacleHit}
+        />
 
         {/* Game HUD */}
         <Card className="absolute top-4 left-4 bg-background/80 backdrop-blur-sm border-primary/30 shadow-[0_0_15px_hsl(var(--primary)/0.2)] z-10">
@@ -902,73 +789,8 @@ function App() {
 
   // Start/Home screen
   return (
-    <div className="relative w-screen h-screen overflow-hidden">
-      <BackgroundScene />
-
-      <div className="absolute inset-0 flex flex-col items-center justify-start z-10 p-6 pt-20">
-        <div className="max-w-2xl w-full text-center">
-          {/* Game Title */}
-          <div className="mb-8">
-            <div className="text-center mb-4">
-              <Badge
-                variant="outline"
-                className="bg-background/80 backdrop-blur-sm border-primary/30 text-muted-foreground text-xs"
-              >
-                v{APP_VERSION}
-              </Badge>
-            </div>
-            <h1 className="game-title text-5xl md:text-7xl lg:text-8xl font-bold tracking-wider mb-4 relative"
-                style={{
-                  background: 'linear-gradient(135deg, hsl(var(--foreground)) 0%, hsl(var(--primary) / 0.3) 25%, hsl(var(--primary)) 50%, hsl(var(--primary) / 0.8) 75%, hsl(var(--foreground)) 100%)',
-                  backgroundSize: '200% 200%',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text',
-                  textShadow: `0 0 20px hsl(var(--primary) / 0.5), 0 0 40px hsl(var(--primary) / 0.3), 0 0 60px hsl(var(--primary) / 0.2)`,
-                  filter: 'drop-shadow(0 0 10px hsl(var(--primary) / 0.8)) brightness(1.1)',
-                  animation: 'shimmer 4s ease-in-out infinite'
-                }}>
-              <style dangerouslySetInnerHTML={{
-                __html: `
-                  @keyframes shimmer {
-                    0%, 100% {
-                      background-position: 0% 50%;
-                      filter: brightness(1.1) drop-shadow(0 0 10px hsl(var(--primary) / 0.8));
-                    }
-                    50% {
-                      background-position: 100% 50%;
-                      filter: brightness(1.3) drop-shadow(0 0 20px hsl(var(--primary) / 1));
-                    }
-                  }
-                `
-              }} />
-              NAD RACER
-            </h1>
-            <div className="w-20 h-1 bg-gradient-to-r from-transparent via-primary to-transparent mx-auto mb-6"></div>
-          </div>
-
-
-
-
-          {/* Main Play Button - Center */}
-          <div className="absolute bottom-28 left-1/2 transform -translate-x-1/2 z-10">
-            <Button
-              onClick={startGame}
-              size="lg"
-              className="h-20 text-2xl px-12 bg-gradient-to-r from-primary/20 to-primary/10 border-2 border-primary/50 text-white shadow-[0_0_20px_hsl(var(--primary)/0.4)] focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 focus:ring-offset-background"
-              aria-label="Start the NAD RACER game"
-            >
-              <span className="flex items-center gap-4 font-bold tracking-wider" style={{ fontFamily: 'Orbitron, sans-serif' }}>
-                <img src="/svg/play.svg" alt="Play" className="w-8 h-8" />
-                LAUNCH
-                <div className="w-3 h-3 bg-primary rounded-full animate-pulse shadow-[0_0_6px_hsl(var(--primary)/0.8)]" aria-hidden="true"></div>
-              </span>
-            </Button>
-          </div>
-
-
-        </div>
-      </div>
+    <>
+      <StartScreen appVersion={APP_VERSION} onStart={startGame} />
 
       {/* Dock Component - Bottom of screen */}
       {monadWalletAddress && (
@@ -1025,7 +847,8 @@ function App() {
         onPlay={() => console.log('🎵 Audio started playing')}
         onPause={() => console.log('🎵 Audio paused - checking if this is expected')}
       />
-    </div>
+    </>
+  );
   );
 }
 
