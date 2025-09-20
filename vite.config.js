@@ -42,7 +42,7 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     assetsDir: 'assets',
-    sourcemap: true, // Enable source maps temporarily for debugging
+    sourcemap: false, // Disable source maps in production
     minify: 'esbuild', // Use esbuild for faster minification
     target: 'esnext', // Use esnext to properly handle BigInt
     rollupOptions: {
@@ -71,8 +71,9 @@ export default defineConfig({
   esbuild: {
     loader: 'jsx',
     include: /\.[jt]sx?$/,
-    // Keep console.error for debugging
+    // Keep console.error in output; strip other console calls and debugger in prod
     drop: ['debugger'],
+    pure: ['console.log', 'console.info', 'console.debug', 'console.warn'],
   },
   optimizeDeps: {
     include: [
