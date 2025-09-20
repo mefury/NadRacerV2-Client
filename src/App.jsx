@@ -3,15 +3,7 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { usePrivy } from '@privy-io/react-auth';
 import RacingScene from './racingscene.jsx';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Play, Pause, User, Trophy, Info, LogOut } from 'lucide-react';
-import Dock from '@/components/Dock';
+import DockBar from '@/components/DockBar.jsx';
 import ProfileDialog from '@/components/ProfileDialog';
 import LeaderboardDialog from '@/components/LeaderboardDialog';
 import AboutDialog from '@/components/AboutDialog';
@@ -34,8 +26,6 @@ import { useGameSession } from '@/hooks/useGameSession.js';
   const [health, setHealth] = useState(3);
   const [selectedShip, setSelectedShip] = useState("SHIP_1");
   const [collectedCoins, setCollectedCoins] = useState(0);
-  const [lastTxStatus, setLastTxStatus] = useState(null);
-  const [audioInitialized, setAudioInitialized] = useState(false);
   const [fps, setFps] = useState(0);
 
   // Leaderboard
@@ -145,48 +135,7 @@ import { useGameSession } from '@/hooks/useGameSession.js';
     audioSystem.playCrashSound();
   };
 
-  const getHealthColor = (health) => {
-    if (health === 3) return "bg-success";
-    if (health === 2) return "bg-warning";
-    return "bg-error";
-  };
 
-  // Dock items configuration - using useMemo to avoid recreation on every render
-  const dockItems = useMemo(() => [
-    {
-      icon: <User size={18} className="text-blue-500" />,
-      label: "Profile",
-      onClick: () => {
-        setShowProfile(true);
-      }
-    },
-    {
-      icon: <Trophy size={18} className="text-yellow-500" />,
-      label: "Leaderboard",
-      onClick: () => {
-        setShowLeaderboard(true);
-      }
-    },
-    {
-      icon: <Info size={18} className="text-blue-500" />,
-      label: "About",
-      onClick: () => {
-        setShowAbout(true);
-      }
-    },
-    {
-      icon: isAudioEnabled ? 
-        <Pause size={18} className="text-purple-500" /> : 
-        <Play size={18} className="text-green-500" />,
-      label: isAudioEnabled ? "Pause Audio" : "Play Audio",
-      onClick: () => handleAudioToggle(!isAudioEnabled)
-    },
-    {
-      icon: <LogOut size={18} className="text-red-500" />,
-      label: "Logout",
-      onClick: logout
-    }
-  ], [isAudioEnabled, handleAudioToggle, logout]);
 
   // FPS tracking
   useFps(gameState === "playing", setFps);
@@ -250,14 +199,17 @@ import { useGameSession } from '@/hooks/useGameSession.js';
 
       {/* Dock Component - Bottom of screen */}
       {monadWalletAddress && (
-        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-30">
-          <Dock 
-            items={dockItems}
-            panelHeight={68}
-            baseItemSize={50}
-            magnification={70}
-          />
-        </div>
+        <DockBar
+          isAudioEnabled={isAudioEnabled}
+          onToggleAudio={handleAudioToggle}
+          onProfile={() => setShowProfile(true)}
+          onLeaderboard={() => setShowLeaderboard(true)}
+          onAbout={() => setShowAbout(true)}
+          onLogout={logout}
+          panelHeight={68}
+          baseItemSize={50}
+          magnification={70}
+        />
       )}
 
       {/* Profile Dialog */}
