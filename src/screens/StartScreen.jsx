@@ -1,12 +1,28 @@
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import BackgroundScene from '@/background.jsx';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 
 function StartScreen({ appVersion, onStart }) {
+  const bgRef = useRef(null);
+  const [launching, setLaunching] = useState(false);
+
+  const handleLaunch = () => {
+    if (launching) return;
+    setLaunching(true);
+    if (bgRef.current && typeof bgRef.current.zoomOut === 'function') {
+      bgRef.current.zoomOut(() => {
+        onStart?.();
+        setLaunching(false);
+      }, 35, 600);
+    } else {
+      onStart?.();
+      setLaunching(false);
+    }
+  };
+
   return (
     <div className="relative w-screen h-screen overflow-hidden">
-      <BackgroundScene />
+      <BackgroundScene ref={bgRef} />
 
       <div className="absolute inset-0 flex flex-col items-center justify-start z-10 p-6 pt-20">
         <div className="max-w-2xl w-full text-center">
@@ -56,26 +72,21 @@ function StartScreen({ appVersion, onStart }) {
             <div className="w-20 h-1 bg-gradient-to-r from-transparent via-primary to-transparent mx-auto mb-6"></div>
           </div>
 
-          {/* Main Play Button - Center */}
-          <div className="absolute bottom-28 left-1/2 transform -translate-x-1/2 z-10">
-            <Button
-              onClick={onStart}
-              size="lg"
-              className="h-20 text-2xl px-12 bg-gradient-to-r from-primary/20 to-primary/10 border-2 border-primary/50 text-white shadow-[0_0_20px_hsl(var(--primary)/0.4)] focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 focus:ring-offset-background"
-              aria-label="Start the NAD RACER game"
+          {/* Launch CTA - Center text */}
+          <div className="absolute inset-0 z-10 flex items-center justify-center select-none" style={{ WebkitUserSelect: 'none', userSelect: 'none' }}>
+            <button
+              onClick={handleLaunch}
+              className="group relative text-red-500 hover:text-red-400 transition-colors cursor-pointer"
+              aria-label="Launch mission"
+              style={{ background: 'transparent', border: 'none' }}
             >
-              <span
-                className="flex items-center gap-4 font-bold tracking-wider"
-                style={{ fontFamily: 'Orbitron, sans-serif' }}
-              >
-                <img src="/svg/play.svg" alt="Play" className="w-8 h-8" />
-                LAUNCH
-                <div
-                  className="w-3 h-3 bg-primary rounded-full animate-pulse shadow-[0_0_6px_hsl(var(--primary)/0.8)]"
-                  aria-hidden="true"
-                ></div>
+              <span className="hidden md:inline font-bold tracking-wider" style={{ fontFamily: 'Orbitron, sans-serif' }}>
+                Click Here to Launch Mission
               </span>
-            </Button>
+              <span className="md:hidden inline font-bold tracking-wider" style={{ fontFamily: 'Orbitron, sans-serif' }}>
+                Tap Here To Launch Mission
+              </span>
+            </button>
           </div>
         </div>
       </div>

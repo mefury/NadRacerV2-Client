@@ -54,34 +54,37 @@ function PlayingHud({ score, health, fps, controlsRef }) {
             variant="outline"
             size="lg"
             className="w-16 h-16 sm:w-20 sm:h-20 rounded-full border-2 border-primary/50 bg-transparent shadow-[0_0_10px_hsl(var(--primary)/0.3)] hover:bg-primary/10 active:bg-primary/20 p-0"
-            style={{ touchAction: 'manipulation' }}
+            style={{ touchAction: 'manipulation', WebkitTouchCallout: 'none', WebkitUserSelect: 'none', userSelect: 'none' }}
+            onContextMenu={(e) => e.preventDefault()}
             onTouchStart={(e) => { e.preventDefault(); controlsRef.current.left = true; }}
             onTouchEnd={(e) => { e.preventDefault(); controlsRef.current.left = false; }}
             aria-label="Move left"
           >
-            <img src="/svg/left.svg" alt="Left" className="w-12 h-12 sm:w-16 sm:h-16" />
+            <img src="/svg/left.svg" alt="" draggable="false" onDragStart={(e)=>e.preventDefault()} onContextMenu={(e)=>e.preventDefault()} className="w-12 h-12 sm:w-16 sm:h-16 select-none pointer-events-none" style={{ WebkitTouchCallout: 'none', WebkitUserDrag: 'none', WebkitUserSelect: 'none', userSelect: 'none' }} />
           </Button>
           <Button
             variant="outline"
             size="lg"
             className="w-16 h-16 sm:w-20 sm:h-20 rounded-full border-2 border-primary/50 bg-transparent shadow-[0_0_10px_hsl(var(--primary)/0.3)] hover:bg-primary/10 active:bg-primary/20 p-0"
-            style={{ touchAction: 'manipulation' }}
+            style={{ touchAction: 'manipulation', WebkitTouchCallout: 'none', WebkitUserSelect: 'none', userSelect: 'none' }}
+            onContextMenu={(e) => e.preventDefault()}
             onTouchStart={(e) => { e.preventDefault(); controlsRef.current.boost = true; }}
             onTouchEnd={(e) => { e.preventDefault(); controlsRef.current.boost = false; }}
             aria-label="Boost"
           >
-            <img src="/svg/fire.svg" alt="Boost" className="w-12 h-12 sm:w-16 sm:h-16" />
+            <img src="/svg/fire.svg" alt="" draggable="false" onDragStart={(e)=>e.preventDefault()} onContextMenu={(e)=>e.preventDefault()} className="w-12 h-12 sm:w-16 sm:h-16 select-none pointer-events-none" style={{ WebkitTouchCallout: 'none', WebkitUserDrag: 'none', WebkitUserSelect: 'none', userSelect: 'none' }} />
           </Button>
           <Button
             variant="outline"
             size="lg"
             className="w-16 h-16 sm:w-20 sm:h-20 rounded-full border-2 border-primary/50 bg-transparent shadow-[0_0_10px_hsl(var(--primary)/0.3)] hover:bg-primary/10 active:bg-primary/20 p-0"
-            style={{ touchAction: 'manipulation' }}
+            style={{ touchAction: 'manipulation', WebkitTouchCallout: 'none', WebkitUserSelect: 'none', userSelect: 'none' }}
+            onContextMenu={(e) => e.preventDefault()}
             onTouchStart={(e) => { e.preventDefault(); controlsRef.current.right = true; }}
             onTouchEnd={(e) => { e.preventDefault(); controlsRef.current.right = false; }}
             aria-label="Move right"
           >
-            <img src="/svg/right.svg" alt="Right" className="w-12 h-12 sm:w-16 sm:h-16" />
+            <img src="/svg/right.svg" alt="" draggable="false" onDragStart={(e)=>e.preventDefault()} onContextMenu={(e)=>e.preventDefault()} className="w-12 h-12 sm:w-16 sm:h-16 select-none pointer-events-none" style={{ WebkitTouchCallout: 'none', WebkitUserDrag: 'none', WebkitUserSelect: 'none', userSelect: 'none' }} />
           </Button>
       </div>
     </>

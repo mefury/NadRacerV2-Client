@@ -1,5 +1,5 @@
 // src/background.js - Enhanced Space Simulation Background
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, forwardRef, useImperativeHandle } from "react";
 import * as THREE from "three";
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
@@ -124,14 +124,26 @@ void main(){
 }
 `;
 
-function BackgroundScene() {
+const BackgroundScene = forwardRef(function BackgroundScene(_, ref) {
   const mountRef = useRef(null);
   const clockRef = useRef(new THREE.Clock());
   const orreryRef = useRef(null);
   const starRef = useRef(null);
   const planetsRef = useRef([]);
   const particleSystemsRef = useRef([]);
+  const cameraRef = useRef(null);
   const animationIdRef = useRef(null);
+
+  // Zoom-out animation state (for transition into gameplay)
+  const zoomActiveRef = useRef(false);
+  const zoomStartRef = useRef(0);
+  const zoomDurationRef = useRef(600); // ms
+  const zoomCallbackRef = useRef(null);
+  const camStartZRef = useRef(0);
+  const camTargetZRef = useRef(0);
+
+  // References to composer passes we may animate
+  const bloomPassRef = useRef(null);
 
   useEffect(() => {
     const scene = new THREE.Scene();
@@ -141,6 +153,7 @@ function BackgroundScene() {
       0.1,
       3000
     );
+    cameraRef.current = camera;
     camera.position.set(CONFIG.CAMERA_POSITION.x, CONFIG.CAMERA_POSITION.y, CONFIG.CAMERA_POSITION.z);
 
     const renderer = new THREE.WebGLRenderer({
@@ -175,6 +188,7 @@ function BackgroundScene() {
       0.6, 0.5, 0.15
     );
     composer.addPass(bloomPass);
+    bloomPassRef.current = bloomPass;
     composer.addPass(new OutputPass());
 
     // Enhanced Lighting Setup
@@ -367,6 +381,27 @@ function BackgroundScene() {
         system.system.geometry.attributes.position.needsUpdate = true;
       });
 
+      // Zoom-out animation
+      if (zoomActiveRef.current) {
+        const now = performance.now();
+        const t = Math.min(1, (now - zoomStartRef.current) / zoomDurationRef.current);
+        // Ease in-out quad
+        const ease = t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+        camera.position.z = THREE.MathUtils.lerp(camStartZRef.current, camTargetZRef.current, ease);
+        // Slight increase in bloom for effect
+        if (bloomPassRef.current) {
+          bloomPassRef.current.strength = 0.6 + 0.4 * t;
+        }
+        if (t >= 1) {
+          zoomActiveRef.current = false;
+          if (typeof zoomCallbackRef.current === 'function') {
+            const cb = zoomCallbackRef.current;
+            zoomCallbackRef.current = null;
+            cb();
+          }
+        }
+      }
+
       // Update Camera Controls
       controls.update();
 
@@ -394,6 +429,23 @@ function BackgroundScene() {
       renderer.dispose();
     };
   }, []);
+
+  // Expose zoomOut method to parent (must be outside effects)
+  useImperativeHandle(ref, () => ({
+    zoomOut: (cb, distance = 35, durationMs = 600) => {
+      const camera = cameraRef.current;
+      if (!camera) {
+        if (typeof cb === 'function') cb();
+        return;
+      }
+      zoomActiveRef.current = true;
+      zoomStartRef.current = performance.now();
+      zoomDurationRef.current = durationMs;
+      camStartZRef.current = camera.position.z;
+      camTargetZRef.current = camera.position.z + distance;
+      zoomCallbackRef.current = cb;
+    }
+  }));
 
   // Helper function to create particle trails
   function createParticleTrail(planet, color, radius) {
@@ -437,6 +489,9 @@ function BackgroundScene() {
   }
 
   return <div ref={mountRef} className="absolute inset-0 w-full h-full" style={{ zIndex: 0 }} />;
-}
+});
+
+// Expose imperative zoomOut API
+BackgroundScene.displayName = 'BackgroundScene';
 
 export default BackgroundScene;
