@@ -109,8 +109,6 @@ function App() {
   };
 
   const resetGame = () => {
-    // Reset score submission status
-    resetSubmission();
     // Clear controls
     if (controlsRef.current) {
       controlsRef.current.left = false;
@@ -254,7 +252,7 @@ function App() {
       {/* Hidden Audio Element */}
       <audio
         ref={audioRef}
-        src="https://github.com/mefury/Nad-Racer/raw/80807203ebfa9e19b917c3198f6163f34c4daeb9/audiomass-output%20(1).mp3"
+        src="/homebg.mp3"
         loop
         preload="auto"
         onError={(e) => console.error('Audio error:', e)}

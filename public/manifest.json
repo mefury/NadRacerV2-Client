@@ -1,6 +1,7 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "NadRacer",
+  "name": "Nad Racer - 3D Space Racing",
+  "description": "Dodge obstacles, collect coins, and race for the high score in 3D space.",
   "icons": [
     {
       "src": "favicon.ico",
@@ -18,8 +19,9 @@
       "sizes": "512x512"
     }
   ],
-  "start_url": ".",
+  "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "theme_color": "#000000",
-  "background_color": "#ffffff"
+  "background_color": "#000000"
 }

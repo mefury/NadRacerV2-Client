@@ -4,10 +4,20 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#000000" />
-    <meta
-      name="description"
-      content="Nad Racer: A 3D space racing game built with React and Three.js. Dodge obstacles, collect coins, and race for the high score!"
-    />
+    <meta name="description" content="Nad Racer: 3D space racing. Dodge obstacles, collect coins, and chase the high score!" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Nad Racer" />
+    <meta property="og:description" content="3D space racing. Dodge obstacles, collect coins, and chase the high score!" />
+    <meta property="og:image" content="/preview.png" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Nad Racer" />
+    <meta name="twitter:description" content="3D space racing. Dodge obstacles, collect coins, and chase the high score!" />
+    <meta name="twitter:image" content="/preview.png" />
+
     <link rel="icon" href="/favicon.ico" />
     <link rel="apple-touch-icon" href="/logo192.png" />
     <link rel="manifest" href="/manifest.json" />
@@ -16,5 +26,16 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
+
+    <!-- Minimal Service Worker registration for PWA -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js').catch((err) => {
+            console.warn('SW registration failed:', err);
+          });
+        });
+      }
+    </script>
   </body>
 </html>

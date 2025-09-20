@@ -3,10 +3,10 @@
 // Handles multiple concurrent sounds with proper resource management
 
 // Audio volume constants
-const MASTER_VOLUME = 0.7;    // Overall volume for all sounds
-const MUSIC_VOLUME = 0.5;     // Background music volume
-const ENGINE_VOLUME = 0.2;    // Engine sound volume
-const EFFECTS_VOLUME = 0.6;   // Volume for coin and crash sounds
+const MASTER_VOLUME = 1;    // Overall volume for all sounds
+const MUSIC_VOLUME = 0.7;     // Background music volume
+const ENGINE_VOLUME = 0.4;    // Engine sound volume
+const EFFECTS_VOLUME = 0.8;   // Volume for coin and crash sounds
 
 class AudioSystem {
     constructor() {

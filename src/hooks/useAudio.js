@@ -7,40 +7,6 @@ export function useAudio(gameState) {
   const audioRef = useRef(null);
   const [isAudioEnabled, setIsAudioEnabled] = useState(false);
 
-  // Test audio file accessibility (as in original App.jsx)
-  useEffect(() => {
-    let cancelled = false;
-    const testAudio = async () => {
-      try {
-        const response = await fetch(
-          'https://github.com/mefury/Nad-Racer/raw/80807203ebfa9e19b917c3198f6163f34c4daeb9/audiomass-output%20(1).mp3'
-        );
-        console.log('Audio file fetch response:', response.status, response.ok);
-        if (response.ok) {
-          console.log('Audio file is accessible');
-        } else {
-          console.error('Audio file not accessible:', response.status);
-        }
-      } catch (error) {
-        if (!cancelled) console.error('Error fetching audio file:', error);
-      }
-    };
-    testAudio();
-
-    // Debug the audio element shortly after mount
-    const t = setTimeout(() => {
-      console.log('Audio ref after mount:', audioRef.current);
-      if (audioRef.current) {
-        console.log('Audio element src:', audioRef.current.src);
-        console.log('Audio element readyState:', audioRef.current.readyState);
-      }
-    }, 1000);
-
-    return () => {
-      cancelled = true;
-      clearTimeout(t);
-    };
-  }, []);
 
   // First user interaction bootstrap to allow autoplay
   useEffect(() => {

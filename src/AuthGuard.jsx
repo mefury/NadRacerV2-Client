@@ -29,7 +29,7 @@ function AuthGuard({ children }) {
   if (!ready) {
     console.log('AuthGuard: Privy not ready yet');
     return (
-      <div className="relative w-screen h-screen overflow-hidden bg-background text-foreground flex items-center justify-center">
+      <div className="relative w-full min-h-[100dvh] overflow-hidden bg-background text-foreground flex items-center justify-center">
         <BackgroundScene />
         <div className="relative z-10 text-center">
           <h1 className="game-title text-2xl mb-4">INITIALIZING...</h1>
@@ -46,7 +46,7 @@ function AuthGuard({ children }) {
   if (!authenticated) {
     console.log('AuthGuard: User not authenticated, showing login screen');
     return (
-      <div className="relative w-screen h-screen overflow-hidden bg-background text-foreground">
+      <div className="relative w-full min-h-[100dvh] overflow-hidden bg-background text-foreground">
         <BackgroundScene />
 
         {/* Game Title - Centered */}
@@ -55,8 +55,11 @@ function AuthGuard({ children }) {
         </div>
 
         {/* Login Card - Bottom */}
-        <div className="absolute left-1/2 -translate-x-1/2 z-10 w-full max-w-md px-4 sm:px-6" style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)' }}>
-          <div className="bg-black/90 backdrop-blur-md p-4 sm:p-6 rounded-xl border border-red-500/30 shadow-[0_0_20px_rgba(239,68,68,0.25)]">
+        <div
+          className="absolute inset-x-0 z-10 px-4 sm:px-6 w-full max-w-sm sm:max-w-md mx-auto"
+          style={{ bottom: 'max(env(safe-area-inset-bottom, 0px), 12px)' }}
+        >
+          <div className="bg-black/90 backdrop-blur-md p-4 sm:p-6 rounded-xl border border-red-500/30 shadow-[0_0_20px_rgba(239,68,68,0.25)] w-full">
             <h2 className="text-lg sm:text-xl text-red-500 mb-3 sm:mb-4 font-bold text-center">LOGIN REQUIRED</h2>
             <p className="text-xs sm:text-sm text-white/80 mb-4 sm:mb-6 text-center">
               Connect with your Monad Game ID to access the racing experience and compete on the global leaderboard.
@@ -73,7 +76,7 @@ function AuthGuard({ children }) {
                     console.log('AuthGuard: Login button clicked');
                     login(); // This will show the Privy login modal with Monad Games ID as primary option
                   }}
-                  className="relative h-14 sm:h-16 text-lg sm:text-xl px-10 w-full bg-gradient-to-r from-red-500/20 to-red-500/10 border-2 border-red-500/50 text-white rounded-xl hover:border-red-500 hover:shadow-[0_0_25px_rgba(239,68,68,0.6)] transition-all duration-300 overflow-hidden"
+                  className="relative h-14 sm:h-16 text-lg sm:text-xl px-8 sm:px-10 w-full bg-gradient-to-r from-red-500/20 to-red-500/10 border-2 border-red-500/50 text-white rounded-xl hover:border-red-500 hover:shadow-[0_0_25px_rgba(239,68,68,0.6)] transition-all duration-300 overflow-hidden"
                   style={{ WebkitTapHighlightColor: 'transparent' }}
                 >
                   {/* Animated inner glow */}
