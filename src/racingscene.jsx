@@ -365,7 +365,7 @@ function RacingScene({ score, setScore, setHealth, health, endGame, gameState, c
         if (collisionResult.blinkCount > 0) {
           blinkCount = collisionResult.blinkCount;
         }
-        
+
         // Apply the blinking effect to the ship
         blinkCount = applyBlinkEffect(rocketGroup, blinkCount, originalMaterialsRef);
         
@@ -436,6 +436,7 @@ function RacingScene({ score, setScore, setHealth, health, endGame, gameState, c
 
         // Log object counts for debugging
         console.log("Obstacles:", obstaclesRef.current.length, "Coins:", coinsRef.current.length);
+
 
         // Log if a coin was recently collected (debug only)
         if (score > prevScoreRef.current) {

@@ -15,7 +15,7 @@ function StartScreen({ appVersion, onStart }) {
             <div className="text-center mb-4">
               <Badge
                 variant="outline"
-                className="bg-background/80 backdrop-blur-sm border-primary/30 text-muted-foreground text-xs"
+                className="bg-red-500/10 text-red-400 border-red-500/30 text-xs"
               >
                 v{appVersion}
               </Badge>

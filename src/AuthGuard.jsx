@@ -55,17 +55,17 @@ function AuthGuard({ children }) {
         </div>
 
         {/* Login Card - Bottom */}
-        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 z-10 w-full max-w-md p-6">
-          <div className="bg-background/90 backdrop-blur-sm p-6 rounded-xl border border-primary/30 shadow-[0_0_20px_hsl(var(--primary)/0.2)]">
-            <h2 className="text-xl text-primary mb-4 font-bold">LOGIN REQUIRED</h2>
-            <p className="text-sm text-muted-foreground mb-6">
+        <div className="absolute left-1/2 -translate-x-1/2 z-10 w-full max-w-md px-4 sm:px-6" style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)' }}>
+          <div className="bg-black/90 backdrop-blur-md p-4 sm:p-6 rounded-xl border border-red-500/30 shadow-[0_0_20px_rgba(239,68,68,0.25)]">
+            <h2 className="text-lg sm:text-xl text-red-500 mb-3 sm:mb-4 font-bold text-center">LOGIN REQUIRED</h2>
+            <p className="text-xs sm:text-sm text-white/80 mb-4 sm:mb-6 text-center">
               Connect with your Monad Game ID to access the racing experience and compete on the global leaderboard.
             </p>
 
             <div className="flex justify-center">
-              <div className="relative group">
+              <div className="relative group w-full max-w-xs">
                 {/* Animated background glow */}
-                <div className="absolute -inset-2 bg-gradient-to-r from-primary/20 via-primary/10 to-primary/20 rounded-xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                <div className="absolute -inset-2 bg-gradient-to-r from-red-500/20 via-red-500/10 to-red-500/20 rounded-xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
 
                 {/* Main button */}
                 <button
@@ -73,28 +73,30 @@ function AuthGuard({ children }) {
                     console.log('AuthGuard: Login button clicked');
                     login(); // This will show the Privy login modal with Monad Games ID as primary option
                   }}
-                  className="relative px-12 py-4 text-xl md:text-2xl bg-gradient-to-b from-background/60 to-background/40 border-2 border-primary/60 text-foreground rounded-xl hover:border-primary hover:shadow-[0_0_25px_hsl(var(--primary)/0.8)] hover:shadow-primary/20 transition-all duration-300 w-full max-w-xs overflow-hidden"
+                  className="relative h-14 sm:h-16 text-lg sm:text-xl px-10 w-full bg-gradient-to-r from-red-500/20 to-red-500/10 border-2 border-red-500/50 text-white rounded-xl hover:border-red-500 hover:shadow-[0_0_25px_rgba(239,68,68,0.6)] transition-all duration-300 overflow-hidden"
+                  style={{ WebkitTapHighlightColor: 'transparent' }}
                 >
                   {/* Animated inner glow */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-red-500/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
 
                   {/* Button content */}
                   <div className="relative z-10 flex items-center justify-center gap-3">
-                    <span className="tracking-wider">LOGIN</span>
-                    <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+                    <img src="/svg/play.svg" alt="Login" className="w-6 h-6" />
+                    <span className="tracking-wider" style={{ fontFamily: 'Orbitron, sans-serif' }}>LOGIN</span>
+                    <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
                   </div>
 
                   {/* Subtle border animation */}
-                  <div className="absolute inset-0 rounded-xl border border-primary/30 group-hover:border-primary/80 transition-colors duration-300"></div>
+                  <div className="absolute inset-0 rounded-xl border border-red-500/30 group-hover:border-red-500/80 transition-colors duration-300"></div>
                 </button>
 
                 {/* Floating particles effect */}
-                <div className="absolute -top-1 -right-1 w-3 h-3 bg-primary rounded-full opacity-60 animate-ping"></div>
-                <div className="absolute -bottom-1 -left-1 w-2 h-2 bg-primary rounded-full opacity-40 animate-pulse" style={{ animationDelay: '0.5s' }}></div>
+                <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full opacity-60 animate-ping"></div>
+                <div className="absolute -bottom-1 -left-1 w-2 h-2 bg-red-500 rounded-full opacity-40 animate-pulse" style={{ animationDelay: '0.5s' }}></div>
               </div>
             </div>
 
-            <div className="text-xs text-muted-foreground text-center mt-4">
+            <div className="text-[10px] sm:text-xs text-white/70 text-center mt-3 sm:mt-4 select-none">
               Powered by Monad & Privy
             </div>
           </div>

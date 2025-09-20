@@ -13,11 +13,11 @@ function PlayingHud({ score, health, fps, controlsRef }) {
   return (
     <>
       {/* Game HUD */}
-      <Card className="absolute top-4 left-4 bg-background/80 backdrop-blur-sm border-primary/30 shadow-[0_0_15px_hsl(var(--primary)/0.2)] z-10">
+      <Card className="absolute top-4 left-4 bg-black/60 backdrop-blur-md border-red-500/30 shadow-[0_0_15px_rgba(239,68,68,0.25)] z-10 select-none" style={{ WebkitUserSelect: 'none', userSelect: 'none', WebkitTapHighlightColor: 'transparent' }}>
         <CardContent className="p-4">
           <div className="flex items-center gap-6">
             <div className="text-center">
-              <div className="text-4xl md:text-5xl text-primary font-bold font-mono">
+              <div className="text-4xl md:text-5xl text-red-500 font-bold font-mono drop-shadow-[0_0_8px_rgba(239,68,68,0.6)]">
                 {score.toLocaleString()}
               </div>
               <p className="text-xs uppercase text-muted-foreground mt-1">SCORE</p>
@@ -33,7 +33,7 @@ function PlayingHud({ score, health, fps, controlsRef }) {
                   ></div>
                 ))}
               </div>
-              <p className="text-xs uppercase text-foreground font-semibold">HEALTH</p>
+              <p className="text-xs uppercase text-white font-semibold">HEALTH</p>
             </div>
           </div>
         </CardContent>
@@ -42,43 +42,47 @@ function PlayingHud({ score, health, fps, controlsRef }) {
       {/* FPS Counter */}
       <Badge
         variant="outline"
-        className="absolute top-36 left-4 text-xs text-foreground border-primary/30 bg-background/80 backdrop-blur-sm"
+        className="absolute top-36 left-4 text-xs text-white border-red-500/30 bg-black/60 backdrop-blur-md drop-shadow-[0_0_6px_rgba(239,68,68,0.6)] select-none"
+        style={{ WebkitUserSelect: 'none', userSelect: 'none', WebkitTapHighlightColor: 'transparent' }}
       >
         FPS: {fps}
       </Badge>
 
       {/* Mobile Controls */}
-      <div className="fixed bottom-12 left-1/2 transform -translate-x-1/2 z-50 flex justify-between w-11/12 max-w-md md:hidden gap-4">
-        <Button
-          variant="outline"
-          size="lg"
-          className="w-20 h-20 rounded-full border-2 border-primary/50 bg-transparent shadow-[0_0_10px_hsl(var(--primary)/0.3)] hover:bg-primary/10 active:bg-primary/20 p-0"
-          onTouchStart={(e) => { e.preventDefault(); controlsRef.current.left = true; }}
-          onTouchEnd={(e) => { e.preventDefault(); controlsRef.current.left = false; }}
-          aria-label="Move left"
-        >
-          <img src="/svg/left.svg" alt="Left" className="w-20 h-20" />
-        </Button>
-        <Button
-          variant="outline"
-          size="lg"
-          className="w-20 h-20 rounded-full border-2 border-primary/50 bg-transparent shadow-[0_0_10px_hsl(var(--primary)/0.3)] hover:bg-primary/10 active:bg-primary/20 p-0"
-          onTouchStart={(e) => { e.preventDefault(); controlsRef.current.boost = true; }}
-          onTouchEnd={(e) => { e.preventDefault(); controlsRef.current.boost = false; }}
-          aria-label="Boost"
-        >
-          <img src="/svg/fire.svg" alt="Boost" className="w-20 h-20" />
-        </Button>
-        <Button
-          variant="outline"
-          size="lg"
-          className="w-20 h-20 rounded-full border-2 border-primary/50 bg-transparent shadow-[0_0_10px_hsl(var(--primary)/0.3)] hover:bg-primary/10 active:bg-primary/20 p-0"
-          onTouchStart={(e) => { e.preventDefault(); controlsRef.current.right = true; }}
-          onTouchEnd={(e) => { e.preventDefault(); controlsRef.current.right = false; }}
-          aria-label="Move right"
-        >
-          <img src="/svg/right.svg" alt="Right" className="w-20 h-20" />
-        </Button>
+      <div className="fixed left-1/2 transform -translate-x-1/2 z-50 flex justify-between w-11/12 max-w-md md:hidden gap-3 sm:gap-4 select-none" style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 12px)', WebkitUserSelect: 'none', userSelect: 'none', WebkitTapHighlightColor: 'transparent' }}>
+          <Button
+            variant="outline"
+            size="lg"
+            className="w-16 h-16 sm:w-20 sm:h-20 rounded-full border-2 border-primary/50 bg-transparent shadow-[0_0_10px_hsl(var(--primary)/0.3)] hover:bg-primary/10 active:bg-primary/20 p-0"
+            style={{ touchAction: 'manipulation' }}
+            onTouchStart={(e) => { e.preventDefault(); controlsRef.current.left = true; }}
+            onTouchEnd={(e) => { e.preventDefault(); controlsRef.current.left = false; }}
+            aria-label="Move left"
+          >
+            <img src="/svg/left.svg" alt="Left" className="w-12 h-12 sm:w-16 sm:h-16" />
+          </Button>
+          <Button
+            variant="outline"
+            size="lg"
+            className="w-16 h-16 sm:w-20 sm:h-20 rounded-full border-2 border-primary/50 bg-transparent shadow-[0_0_10px_hsl(var(--primary)/0.3)] hover:bg-primary/10 active:bg-primary/20 p-0"
+            style={{ touchAction: 'manipulation' }}
+            onTouchStart={(e) => { e.preventDefault(); controlsRef.current.boost = true; }}
+            onTouchEnd={(e) => { e.preventDefault(); controlsRef.current.boost = false; }}
+            aria-label="Boost"
+          >
+            <img src="/svg/fire.svg" alt="Boost" className="w-12 h-12 sm:w-16 sm:h-16" />
+          </Button>
+          <Button
+            variant="outline"
+            size="lg"
+            className="w-16 h-16 sm:w-20 sm:h-20 rounded-full border-2 border-primary/50 bg-transparent shadow-[0_0_10px_hsl(var(--primary)/0.3)] hover:bg-primary/10 active:bg-primary/20 p-0"
+            style={{ touchAction: 'manipulation' }}
+            onTouchStart={(e) => { e.preventDefault(); controlsRef.current.right = true; }}
+            onTouchEnd={(e) => { e.preventDefault(); controlsRef.current.right = false; }}
+            aria-label="Move right"
+          >
+            <img src="/svg/right.svg" alt="Right" className="w-12 h-12 sm:w-16 sm:h-16" />
+          </Button>
       </div>
     </>
   );

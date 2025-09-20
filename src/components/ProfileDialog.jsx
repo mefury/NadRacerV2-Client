@@ -13,7 +13,7 @@ export default function ProfileDialog({
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md bg-background/95 backdrop-blur-md border-primary/30">
+      <DialogContent className="max-w-md bg-black/90 backdrop-blur-md border-red-500/30">
         <DialogHeader>
           <DialogTitle className="text-2xl text-center text-primary mb-4">PILOT PROFILE</DialogTitle>
           <DialogDescription className="text-center text-muted-foreground">
@@ -23,9 +23,9 @@ export default function ProfileDialog({
 
         <div className="space-y-6">
           {/* Pilot Information Card */}
-          <Card className="bg-gradient-to-br from-background/90 via-background/85 to-background/80 backdrop-blur-md border-primary/40 shadow-[0_0_25px_hsl(var(--primary)/0.15)] relative overflow-hidden">
+<Card className="bg-black/70 backdrop-blur-md border-red-500/30 shadow-[0_0_25px_rgba(239,68,68,0.15)] relative overflow-hidden">
             {/* Subtle animated background effect */}
-            <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-primary/5 animate-pulse"></div>
+<div className="absolute inset-0 bg-gradient-to-r from-red-500/10 via-transparent to-red-500/10 animate-pulse"></div>
             
             <CardContent className="p-4 relative">
               {/* Pilot Name Section */}
@@ -33,13 +33,13 @@ export default function ProfileDialog({
                 <div className="text-xs text-muted-foreground font-medium uppercase tracking-wider mb-2">
                   PILOT CALLSIGN
                 </div>
-                <h3 className="text-2xl font-bold text-foreground mb-2">
+                <h3 className="text-2xl font-bold text-white mb-2">
                   {monadUsername.toUpperCase()}
                 </h3>
                 
                 {/* Wallet Address */}
                 <div className="flex justify-center">
-                  <Badge variant="outline" className="bg-muted/20 text-muted-foreground font-mono text-xs">
+                  <Badge variant="outline" className="bg-black/30 text-white font-mono text-xs border-red-500/30">
                     {monadWalletAddress ? `${monadWalletAddress.slice(0, 8)}...${monadWalletAddress.slice(-6)}` : 'No wallet'}
                   </Badge>
                 </div>
@@ -50,13 +50,13 @@ export default function ProfileDialog({
                 <div className="text-xs text-muted-foreground font-medium uppercase tracking-wider mb-2">
                   TOTAL SCORE
                 </div>
-                <div className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-primary via-primary to-primary/80 drop-shadow-[0_0_8px_hsl(var(--primary)/0.4)] font-mono mb-2">
+<div className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-red-500 to-red-500/80 drop-shadow-[0_0_8px_rgba(239,68,68,0.4)] font-mono mb-2">
                   {loadingScore ? '...' : blockchainHighScore.toLocaleString()}
                 </div>
               </div>
 
               {/* Additional Stats */}
-              <div className="mt-6 pt-4 border-t border-border/50">
+<div className="mt-6 pt-4 border-t border-red-500/20">
                 <div className="grid grid-cols-2 gap-4 text-center">
                   <div>
                     <div className="text-xs text-muted-foreground font-medium uppercase tracking-wider mb-1">

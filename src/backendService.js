@@ -294,4 +294,25 @@ const response = await fetch(`${API_BASE_URL}/api/player/${playerAddress}`);
   }
 };
 
+/**
+ * Get queue item status for submitted score (polling helper)
+ */
+export const getQueueItemStatus = async (queueId) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/queue/item/${queueId}`);
+    if (response.status === 404) {
+      // Not found - stop polling silently
+      return { notFound: true };
+    }
+    if (!response.ok) {
+      throw new Error(`Queue status failed: ${response.status}`);
+    }
+    return await response.json();
+  } catch (error) {
+    if (import.meta.env.DEV) {
+      console.warn('⚠️ Error fetching queue item status:', error.message);
+    }
+    throw error;
+  }
+};
 

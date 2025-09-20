@@ -10,7 +10,8 @@ import AboutDialog from '@/components/AboutDialog';
 import UsernameRequiredDialog from '@/components/UsernameRequiredDialog';
 import StartScreen from '@/screens/StartScreen.jsx';
 import PlayingHud from '@/screens/PlayingHud.jsx';
-import GameOverScreen from '@/screens/GameOverScreen.jsx';
+import GameOverOverlay from '@/screens/GameOverOverlay.jsx';
+import LoadingScreen from '@/screens/LoadingScreen.jsx';
 import { APP_VERSION } from '@/constants/game.js';
 import { useFps } from '@/hooks/useFps.js';
 import { useLeaderboard } from '@/hooks/useLeaderboard.js';
@@ -31,6 +32,33 @@ function App() {
 
   // Leaderboard
   const { leaderboard, leaderboardLoading, refresh: refreshLeaderboard } = useLeaderboard();
+
+  // Loading overlay state
+  const [showLoader, setShowLoader] = useState(false);
+  const [loaderValue, setLoaderValue] = useState(0);
+
+  const runLoader = (durationMs, onDone) => {
+    setShowLoader(true);
+    setLoaderValue(0);
+    const step = 50; // ms
+    const increment = 100 / Math.max(1, durationMs / step);
+    let current = 0;
+    const id = setInterval(() => {
+      current = Math.min(100, current + increment);
+      setLoaderValue(current);
+      if (current >= 100) {
+        clearInterval(id);
+        // Perform the transition first, then hide the overlay shortly after
+        Promise.resolve(onDone?.()).finally(() => {
+          requestAnimationFrame(() => {
+            setTimeout(() => {
+              setShowLoader(false);
+            }, 100);
+          });
+        });
+      }
+    }, step);
+  };
 
   // Audio management
   const { audioRef, isAudioEnabled, handleAudioToggle } = useAudio(gameState);
@@ -72,8 +100,8 @@ function App() {
       setShowUsernameRequired(true);
       return;
     }
-    // Directly start the game with the default Speeder ship
-    startPlaying();
+    // Show loader and then start the game
+    runLoader(700, () => startPlaying());
   };
 
   const endGame = () => {
@@ -81,15 +109,16 @@ function App() {
   };
 
   const resetGame = () => {
-    setGameState("start");
     // Reset score submission status
     resetSubmission();
-    // Clear game session
+    // Clear controls
     if (controlsRef.current) {
       controlsRef.current.left = false;
       controlsRef.current.right = false;
       controlsRef.current.boost = false;
     }
+    // Show loader then go to start screen
+    runLoader(600, () => setGameState("start"));
   };
 
 
@@ -114,9 +143,7 @@ function App() {
         controlsRef.current.boost = false;
       }
 
-      setTimeout(() => {
-        setGameState("playing");
-      }, 500);
+      setGameState("playing");
     } catch (error) {
       console.error('❌ Error starting game:', error);
       setGameState("playing");
@@ -138,25 +165,11 @@ function App() {
   useFps(gameState === "playing", setFps);
 
 
-  // Game over screen
-  if (gameState === "gameover") {
-    return (
-      <GameOverScreen
-        score={score}
-        collectedCoins={collectedCoins}
-        submittingScore={submittingScore}
-        scoreSubmissionStatus={scoreSubmissionStatus}
-        scoreSubmissionMessage={scoreSubmissionMessage}
-        onPlayAgain={resetGame}
-        leaderboard={leaderboard}
-        leaderboardLoading={leaderboardLoading}
-      />
-    );
-  }
+  // Removed separate gameover screen; we'll overlay results in the playing container
 
 
   // Playing screen
-  if (gameState === "playing") {
+  if (gameState === "playing" || gameState === "gameover") {
     return (
       <div className="relative w-screen h-screen overflow-hidden">
         <RacingScene
@@ -173,6 +186,16 @@ function App() {
         />
 
         <PlayingHud score={score} health={health} fps={fps} controlsRef={controlsRef} />
+        {gameState === 'gameover' && (
+          <GameOverOverlay
+            score={score}
+            submittingScore={submittingScore}
+            scoreSubmissionStatus={scoreSubmissionStatus}
+            scoreSubmissionMessage={scoreSubmissionMessage}
+            onPlayAgain={resetGame}
+          />
+        )}
+        {showLoader && <LoadingScreen value={loaderValue} />}
       </div>
     );
   }
@@ -181,7 +204,8 @@ function App() {
   return (
     <>
       <StartScreen appVersion={APP_VERSION} onStart={startGame} />
-
+      {showLoader && <LoadingScreen value={loaderValue} />
+      }
       {/* Dock Component - Bottom of screen */}
       {monadWalletAddress && (
         <DockBar

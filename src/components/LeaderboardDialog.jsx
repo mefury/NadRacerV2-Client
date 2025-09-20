@@ -5,12 +5,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 export default function LeaderboardDialog({ 
   open, 
   onOpenChange, 
-  leaderboard, 
-  leaderboardLoading 
+  leaderboard = [], 
+  leaderboardLoading = false,
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl bg-background/95 backdrop-blur-md border-primary/30 relative">
+      <DialogContent className="max-w-4xl bg-black/90 backdrop-blur-md border-primary/30">
         <DialogHeader>
           <DialogTitle className="text-3xl text-center text-primary mb-4">🏆 TOP PILOTS</DialogTitle>
           <DialogDescription className="text-center text-muted-foreground">
@@ -21,7 +21,6 @@ export default function LeaderboardDialog({
         {leaderboardLoading ? (
           <div className="text-center py-12">
             <div className="w-12 h-12 border-3 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-6"></div>
-            <p className="text-muted-foreground text-lg">Loading leaderboard...</p>
           </div>
         ) : leaderboard.length > 0 ? (
           <div className="overflow-x-auto">
@@ -55,25 +54,11 @@ export default function LeaderboardDialog({
           </div>
         ) : (
           <div className="text-center py-12">
-            <p className="text-muted-foreground text-lg">No scores submitted yet</p>
-            <p className="text-muted-foreground text-sm mt-2">Be the first to set a high score!</p>
+            <div className="text-6xl mb-4">🚀</div>
+            <h3 className="text-2xl font-bold text-primary mb-3">COMING SOON</h3>
+            <p className="text-muted-foreground text-sm">Blockchain rankings and competitive gameplay coming soon!</p>
           </div>
         )}
-        
-        {/* Coming Soon Overlay */}
-        <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="text-center p-8">
-            <div className="text-6xl mb-4">🚀</div>
-            <h3 className="text-3xl font-bold text-primary mb-3">COMING SOON</h3>
-            <p className="text-muted-foreground text-lg mb-2">Leaderboard Under Development</p>
-            <p className="text-muted-foreground text-sm mb-6">Blockchain rankings and competitive gameplay coming soon!</p>
-            
-            <div className="inline-flex items-center gap-2 px-4 py-2 border border-primary/30 rounded-lg bg-primary/10">
-              <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
-              <span className="text-sm text-foreground font-medium">Backend in Progress</span>
-            </div>
-          </div>
-        </div>
       </DialogContent>
     </Dialog>
   );

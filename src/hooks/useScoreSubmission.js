@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { submitPlayerScore } from '@/backendService.js';
+import { useEffect, useRef, useState } from 'react';
+import { submitPlayerScore, getQueueItemStatus } from '@/backendService.js';
 
 // Handles score submission when game ends and polls for queued submission completion
 export function useScoreSubmission({
@@ -21,8 +21,7 @@ export function useScoreSubmission({
   };
 
   useEffect(() => {
-    const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
-
+    const warnedRef = { current: false };
     const submitScoreOnGameOver = async () => {
       if (gameState === 'gameover' && monadWalletAddress && score > 0 && !submittingScore && scoreSubmissionStatus === null) {
         console.log('🎮 Game over detected - submitting score to blockchain');
@@ -55,19 +54,21 @@ export function useScoreSubmission({
                 }
 
                 try {
-                  if (!BACKEND_URL) {
-                    console.warn('VITE_BACKEND_URL not set; skipping queued status polling');
+                  const queueStatus = await getQueueItemStatus(queueId);
+
+                  if (import.meta.env.DEV) {
+                    console.debug('🔍 Queue polling check', {
+                      queueId,
+                      status: queueStatus.status,
+                      transactionHash: queueStatus.transactionHash,
+                      attempts: attempts + 1,
+                    });
+                  }
+
+                  if (queueStatus?.notFound) {
+                    // Stop polling silently on 404s
                     return;
                   }
-                  const response = await fetch(`${BACKEND_URL}/api/queue/item/${queueId}`);
-                  const queueStatus = await response.json();
-
-                  console.log('🔍 Queue polling check:', {
-                    queueId,
-                    status: queueStatus.status,
-                    transactionHash: queueStatus.transactionHash,
-                    attempts: attempts + 1,
-                  });
 
                   if (queueStatus.success && queueStatus.transactionHash) {
                     console.log('✅ Transaction hash found in queue!');
@@ -83,7 +84,10 @@ export function useScoreSubmission({
 
                   setTimeout(() => pollForCompletion(queueId, attempts + 1), 1000);
                 } catch (error) {
-                  console.warn('Error polling queue status:', error.message);
+                  if (!warnedRef.current && import.meta.env.DEV) {
+                    console.warn('Error polling queue status:', error.message);
+                    warnedRef.current = true;
+                  }
                   setTimeout(() => pollForCompletion(queueId, attempts + 1), 1000);
                 }
               };
