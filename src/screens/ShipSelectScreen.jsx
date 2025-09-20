@@ -1,5 +1,4 @@
 import React from 'react';
-import BackgroundScene from '@/background.jsx';
 import ShipPreview from '@/ShipPreview.jsx';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -8,7 +7,6 @@ import { Card, CardContent } from '@/components/ui/card';
 function ShipSelectScreen({ shipOptions, selectedShip, onSelect, onLaunch, onBack }) {
   return (
     <div className="relative w-screen h-screen overflow-hidden">
-      <BackgroundScene />
       <div className="absolute inset-0 flex flex-col items-center justify-center z-10 p-6">
         <div className="max-w-4xl w-full">
           <div className="text-center mb-8 relative">

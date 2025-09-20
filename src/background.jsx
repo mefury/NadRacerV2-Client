@@ -131,6 +131,7 @@ function BackgroundScene() {
   const starRef = useRef(null);
   const planetsRef = useRef([]);
   const particleSystemsRef = useRef([]);
+  const animationIdRef = useRef(null);
 
   useEffect(() => {
     const scene = new THREE.Scene();
@@ -335,7 +336,7 @@ function BackgroundScene() {
 
     // Animation Loop
     const animate = () => {
-      requestAnimationFrame(animate);
+      animationIdRef.current = requestAnimationFrame(animate);
       const delta = clockRef.current.getDelta() * CONFIG.TIME_ACCELERATION;
       const elapsed = clockRef.current.getElapsedTime();
 
@@ -383,6 +384,10 @@ function BackgroundScene() {
 
     return () => {
       window.removeEventListener("resize", handleResize);
+      if (animationIdRef.current) {
+        cancelAnimationFrame(animationIdRef.current);
+        animationIdRef.current = null;
+      }
       if (mountRef.current && renderer.domElement) mountRef.current.removeChild(renderer.domElement);
       composer.dispose();
       renderer.dispose();

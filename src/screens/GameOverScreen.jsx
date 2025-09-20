@@ -1,5 +1,4 @@
 import React from 'react';
-import BackgroundScene from '@/background.jsx';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -20,7 +19,6 @@ function GameOverScreen({
 }) {
   return (
     <div className="relative w-screen h-screen overflow-hidden">
-      <BackgroundScene />
       <div className="absolute inset-0 flex flex-col items-center justify-center z-10 p-6">
         <Card className="max-w-md w-full bg-background/90 backdrop-blur-sm border-primary/30">
           <CardHeader className="text-center">
