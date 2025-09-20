@@ -2,10 +2,7 @@
 
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { usePrivy } from '@privy-io/react-auth';
-import { startGameSession } from './backendService.js';
-import { audioSystem } from './audioSystem.js';
 import RacingScene from './racingscene.jsx';
-import BackgroundScene from './background.jsx';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -28,6 +25,8 @@ import { useFps } from '@/hooks/useFps.js';
 import { useLeaderboard } from '@/hooks/useLeaderboard.js';
 import { useMonadUser } from '@/hooks/useMonadUser.js';
 import { useScoreSubmission } from '@/hooks/useScoreSubmission.js';
+import { useAudio } from '@/hooks/useAudio.js';
+import { useGameSession } from '@/hooks/useGameSession.js';
   const { user, logout } = usePrivy();
 
   const [gameState, setGameState] = useState("start"); // start, shipselect, playing, gameover
@@ -38,11 +37,15 @@ import { useScoreSubmission } from '@/hooks/useScoreSubmission.js';
   const [lastTxStatus, setLastTxStatus] = useState(null);
   const [audioInitialized, setAudioInitialized] = useState(false);
   const [fps, setFps] = useState(0);
-  const [assetsLoaded, setAssetsLoaded] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
 
   // Leaderboard
   const { leaderboard, leaderboardLoading, refresh: refreshLeaderboard } = useLeaderboard();
+
+  // Audio management
+  const { audioRef, isAudioEnabled, handleAudioToggle } = useAudio(gameState);
+
+  // Game session
+  const { gameSessionId, startSession } = useGameSession();
 
   // Player data and Monad wallet
   const { monadWalletAddress, monadUsername, hasUsername, blockchainHighScore, loadingScore } = useMonadUser(user);
@@ -57,8 +60,6 @@ import { useScoreSubmission } from '@/hooks/useScoreSubmission.js';
     onLeaderboardRefresh: refreshLeaderboard,
   });
 
-  // Audio toggle state
-  const [isAudioEnabled, setIsAudioEnabled] = useState(false);
 
   // Dialog states
   const [showLeaderboard, setShowLeaderboard] = useState(false);
@@ -66,116 +67,6 @@ import { useScoreSubmission } from '@/hooks/useScoreSubmission.js';
   const [showAbout, setShowAbout] = useState(false);
   const [showUsernameRequired, setShowUsernameRequired] = useState(false);
 
-  // Audio ref
-  const audioRef = useRef(null);
-
-  // Test audio file loading
-  useEffect(() => {
-    const testAudio = async () => {
-      try {
-        const response = await fetch('https://github.com/mefury/Nad-Racer/raw/80807203ebfa9e19b917c3198f6163f34c4daeb9/audiomass-output%20(1).mp3');
-        console.log('Audio file fetch response:', response.status, response.ok);
-        if (response.ok) {
-          console.log('Audio file is accessible');
-        } else {
-          console.error('Audio file not accessible:', response.status);
-        }
-      } catch (error) {
-        console.error('Error fetching audio file:', error);
-      }
-    };
-    testAudio();
-
-    // Check if audio element is created
-    setTimeout(() => {
-      console.log('Audio ref after mount:', audioRef.current);
-      if (audioRef.current) {
-        console.log('Audio element src:', audioRef.current.src);
-        console.log('Audio element readyState:', audioRef.current.readyState);
-      }
-    }, 1000);
-  }, []);
-
-  // Handle first user interaction to enable audio
-  useEffect(() => {
-    const handleFirstInteraction = async () => {
-      console.log('First user interaction detected');
-      await audioSystem.handleUserInteraction();
-
-      // Auto-play background music after first interaction
-      if (audioRef.current && audioRef.current.paused) {
-        try {
-          console.log('Auto-playing background music after user interaction');
-          const playPromise = audioRef.current.play();
-          if (playPromise !== undefined) {
-            await playPromise;
-            setIsAudioEnabled(true);
-            console.log('Background music auto-played successfully');
-          }
-        } catch (error) {
-          console.error('Auto-play after interaction failed:', error);
-        }
-      }
-
-      // Remove all listeners after first interaction
-      window.removeEventListener('click', handleFirstInteraction);
-      window.removeEventListener('touchstart', handleFirstInteraction);
-      window.removeEventListener('keydown', handleFirstInteraction);
-      window.removeEventListener('mousemove', handleFirstInteraction);
-    };
-
-    // Add listeners for first user interaction
-    window.addEventListener('click', handleFirstInteraction, { once: true });
-    window.addEventListener('touchstart', handleFirstInteraction, { once: true });
-    window.addEventListener('keydown', handleFirstInteraction, { once: true });
-    window.addEventListener('mousemove', handleFirstInteraction, { once: true });
-
-    return () => {
-      window.removeEventListener('click', handleFirstInteraction);
-      window.removeEventListener('touchstart', handleFirstInteraction);
-      window.removeEventListener('keydown', handleFirstInteraction);
-      window.removeEventListener('mousemove', handleFirstInteraction);
-    };
-  }, []);
-
-  // Handle audio toggle
-  const handleAudioToggle = async (enabled) => {
-     console.log('Audio toggle:', enabled);
-     console.log('Audio ref exists:', !!audioRef.current);
-     setIsAudioEnabled(enabled);
-     if (audioRef.current) {
-       console.log('Audio element:', audioRef.current);
-       console.log('Current paused state:', audioRef.current.paused);
-       try {
-         if (enabled) {
-           // Ensure audio context is initialized
-           await audioSystem.handleUserInteraction();
-           console.log('Attempting to play audio...');
-           console.log('Audio src:', audioRef.current.src);
-           console.log('Audio readyState:', audioRef.current.readyState);
-
-           // Force play even if already "playing" but not actually playing
-           audioRef.current.currentTime = 0; // Reset to beginning if needed
-           const playPromise = audioRef.current.play();
-           console.log('Play promise:', playPromise);
-           await playPromise;
-           console.log('Audio playing successfully');
-           console.log('Final paused state:', audioRef.current.paused);
-         } else {
-           console.log('Pausing audio...');
-           audioRef.current.pause();
-           console.log('Audio paused, final state:', audioRef.current.paused);
-         }
-       } catch (error) {
-         console.error('Audio playback error:', error);
-         console.error('Error details:', error.message);
-         // Reset state if playback fails
-         setIsAudioEnabled(false);
-       }
-     } else {
-       console.error('Audio ref not available');
-     }
-   };
 
   // Refs
   const controlsRef = useRef({ left: false, right: false, boost: false });
@@ -212,57 +103,23 @@ import { useScoreSubmission } from '@/hooks/useScoreSubmission.js';
   };
 
   const handleShipSelect = async (shipId) => {
-    try {
-      // Ensure audio system is initialized on user interaction
-      await audioSystem.handleUserInteraction();
-      // Force initialization if not already done
-      if (!audioSystem.initialized) {
-        await audioSystem.init();
-      }
-      console.log('🎵 Audio system ready after ship selection');
-    } catch (error) {
-      console.error('❌ Error initializing audio system:', error);
-    }
     setSelectedShip(shipId);
   };
 
   const startPlaying = async () => {
     try {
-      setIsLoading(true);
-      await new Promise(resolve => requestAnimationFrame(resolve));
-
-      // Ensure audio system is ready before starting the game
-      try {
-        await audioSystem.handleUserInteraction();
-        if (!audioSystem.initialized) {
-          console.log('🎵 Initializing audio system before game start...');
-          await audioSystem.init();
-        }
-        console.log('🎵 Audio system confirmed ready for gameplay');
-      } catch (audioError) {
-        console.error('❌ Audio initialization error:', audioError);
-        // Continue with game even if audio fails
-      }
+      await new Promise((resolve) => requestAnimationFrame(resolve));
 
       // ANTI-CHEAT: Start game session
       if (monadWalletAddress) {
-        try {
-          const sessionId = await startGameSession(monadWalletAddress);
-          setGameSessionId(sessionId);
-          console.log('🎮 Game session created:', sessionId);
-        } catch (sessionError) {
-          console.error('⚠️ Failed to create game session:', sessionError);
-          // Continue anyway - don't block gameplay for session creation failure
-        }
+        await startSession(monadWalletAddress);
       }
 
       setScore(0);
       setHealth(3);
       setCollectedCoins(0);
       // Reset score submission status for new game
-      setSubmittingScore(false);
-      setScoreSubmissionStatus(null);
-      setScoreSubmissionMessage('');
+      resetSubmission();
 
       if (controlsRef.current) {
         controlsRef.current.left = false;
@@ -271,12 +128,10 @@ import { useScoreSubmission } from '@/hooks/useScoreSubmission.js';
       }
 
       setTimeout(() => {
-        setIsLoading(false);
         setGameState("playing");
       }, 500);
     } catch (error) {
       console.error('❌ Error starting game:', error);
-      setIsLoading(false);
       setGameState("playing");
     }
   };
@@ -336,62 +191,6 @@ import { useScoreSubmission } from '@/hooks/useScoreSubmission.js';
   // FPS tracking
   useFps(gameState === "playing", setFps);
 
-  // Audio management
-  useEffect(() => {
-    const handleGameAudio = async () => {
-      if (gameState === "playing") {
-        try {
-          // Ensure audio system is fully initialized
-          await audioSystem.handleUserInteraction();
-          if (!audioSystem.initialized) {
-            console.log('🎵 Audio system not initialized, initializing now...');
-            await audioSystem.init();
-          }
-          
-          // Ensure audio context is running
-          if (audioSystem.audioContext?.state === 'suspended') {
-            console.log('🎵 Resuming suspended audio context...');
-            await audioSystem.audioContext.resume();
-          }
-          
-          // Start game audio
-          console.log('🎵 Starting game audio (BGM and engine)...');
-          audioSystem.startBackgroundMusic();
-          audioSystem.startEngineSound();
-          
-          // Pause background audio when entering game
-          if (audioRef.current && !audioRef.current.paused) {
-            audioRef.current.pause();
-            setIsAudioEnabled(false);
-          }
-        } catch (error) {
-          console.error('❌ Error managing game audio:', error);
-        }
-      } else if (gameState === "start") {
-        // Resume background audio if it was playing before
-        // But don't auto-play, let user control
-        audioSystem.stopBackgroundMusic();
-        audioSystem.stopEngineSound();
-
-        // Sync toggle state with actual audio element state
-        if (audioRef.current) {
-          setIsAudioEnabled(!audioRef.current.paused);
-        }
-      } else {
-        audioSystem.stopBackgroundMusic();
-        audioSystem.stopEngineSound();
-      }
-    };
-
-    handleGameAudio();
-  }, [gameState]);
-
-  // Cleanup audio system
-  useEffect(() => {
-    return () => {
-      audioSystem.dispose();
-    };
-  }, []);
 
   // Game over screen
   if (gameState === "gameover") {
