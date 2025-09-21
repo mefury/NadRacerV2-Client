@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { usePrivy } from '@privy-io/react-auth';
 import { submitPlayerScore, getQueueItemStatus } from '@/backendService.js';
 
 // Handles score submission when game ends and polls for queued submission completion
@@ -13,6 +14,7 @@ export function useScoreSubmission({
   const [scoreSubmissionStatus, setScoreSubmissionStatus] = useState(null); // null | 'success' | 'error'
   const [scoreSubmissionMessage, setScoreSubmissionMessage] = useState('');
   const [scoreSubmissionTxHash, setScoreSubmissionTxHash] = useState(null);
+  const { getAccessToken } = usePrivy();
 
   const isValidTxHash = (h) => typeof h === 'string' && /^0x[a-fA-F0-9]{64}$/.test(h);
 
@@ -34,7 +36,8 @@ export function useScoreSubmission({
 
         try {
           console.log('🚀 Submitting score to blockchain:', { playerAddress: monadWalletAddress, score, sessionId: gameSessionId });
-          const result = await submitPlayerScore(monadWalletAddress, score, gameSessionId, 1);
+          const accessToken = await getAccessToken();
+          const result = await submitPlayerScore(monadWalletAddress, score, gameSessionId, accessToken, 1);
           console.log('✅ Score submission result:', result);
           console.log('📋 Transaction hash in result:', result?.transactionHash);
 

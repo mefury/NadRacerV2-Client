@@ -20,6 +20,7 @@ import { useScoreSubmission } from '@/hooks/useScoreSubmission.js';
 import { useAudio } from '@/hooks/useAudio.js';
 import { useGameSession } from '@/hooks/useGameSession.js';
 import { audioSystem } from './audioSystem.js';
+import { recordCoinEvent } from '@/backendService.js';
 
 function App() {
   const { user, logout } = usePrivy();
@@ -148,8 +149,9 @@ function App() {
     }
   };
 
-  const handleGameCoinCollection = async (coinValue) => {
+const handleGameCoinCollection = async (coinValue) => {
     setCollectedCoins(prevCoins => prevCoins + coinValue);
+    try { recordCoinEvent(); } catch {}
     audioSystem.playCoinSound();
   };
 

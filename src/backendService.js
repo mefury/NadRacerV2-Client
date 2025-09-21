@@ -2,12 +2,6 @@
 // Integrates with Monad Game ID APIs for leaderboard and score management
 
 
-
-
-
-
-
-
 // Get Monad username from wallet address
 export const getMonadUsername = async (walletAddress) => {
   try {
@@ -116,33 +110,68 @@ const API_BASE_URL = (() => {
   return '';
 })();
 
+// Lightweight gameplay proof (client)
+let _proofState = { sid: null, salt: null, coinTimestamps: [] };
+
+export function initGameProof(sessionId, sessionSalt) {
+  _proofState = { sid: sessionId, salt: sessionSalt, coinTimestamps: [] };
+}
+
+export function recordCoinEvent() {
+  if (!_proofState.sid) return;
+  const now = Date.now();
+  const rounded = Math.round(now / 100) * 100; // round to 100ms buckets to reduce precision leakage
+  _proofState.coinTimestamps.push(rounded);
+}
+
+async function sha256Hex(input) {
+  const enc = new TextEncoder();
+  const buf = await crypto.subtle.digest('SHA-256', enc.encode(input));
+  const bytes = new Uint8Array(buf);
+  return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function buildGameProof() {
+  if (!_proofState.sid || !_proofState.salt) return null;
+  const sid = _proofState.sid;
+  const salt = _proofState.salt;
+  const ts = _proofState.coinTimestamps.slice();
+  const digestInput = `${sid}|${salt}|coin|${ts.join(',')}`;
+  const digest = await sha256Hex(digestInput);
+  return {
+    timestamps: ts,
+    digest,
+  };
+}
+
 // Debug logging for API base URL
 console.log('🔧 API_BASE_URL:', API_BASE_URL);
 console.log('🔧 Current hostname:', typeof window !== 'undefined' ? window.location.hostname : 'n/a');
 console.log('🔧 DEV mode:', import.meta.env.DEV);
 
 /**
- * Start a game session for anti-cheat protection
+ * Start a game session for anti-cheat protection (signed)
  */
-export const startGameSession = async (playerAddress) => {
+export const startGameSession = async (playerAddress, accessToken) => {
   try {
     console.log('🎮 Starting game session for:', playerAddress);
 
-const response = await fetch(`${API_BASE_URL}/api/start-game`, {
+    const headers = { 'Content-Type': 'application/json' };
+    if (accessToken) headers['Authorization'] = `Bearer ${accessToken}`;
+
+    const response = await fetch(`${API_BASE_URL}/api/start-game`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': import.meta.env.VITE_API_KEY || 'nad-racer-secret-key-2024',
-      },
-      body: JSON.stringify({
-        playerAddress
-      })
+      headers,
+      body: JSON.stringify({ playerAddress })
     });
 
     if (response.ok) {
       const data = await response.json();
       console.log('✅ Game session started:', data.sessionId);
-      return data.sessionId;
+      if (data.sessionId && data.sessionSalt) {
+        initGameProof(data.sessionId, data.sessionSalt);
+      }
+      return { sessionId: data.sessionId, sessionSalt: data.sessionSalt };
     } else {
       const errorData = await response.json();
       console.error('❌ Failed to start game session:', errorData);
@@ -155,23 +184,49 @@ const response = await fetch(`${API_BASE_URL}/api/start-game`, {
 };
 
 /**
- * Submit player score to the blockchain via backend
+ * Fetch a one-time nonce for a session (server-minted jti)
  */
-export const submitPlayerScore = async (playerAddress, score, sessionId, transactions = 1) => {
+async function getSubmitNonce(sessionId, accessToken) {
+  const headers = {};
+  if (accessToken) headers['Authorization'] = `Bearer ${accessToken}`;
+  const response = await fetch(`${API_BASE_URL}/api/session/${sessionId}/nonce`, { method: 'POST', headers });
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.error || 'Failed to get submit nonce');
+  }
+  return await response.json(); // { success, jti, exp, tokenSig }
+}
+
+/**
+ * Submit player score to the blockchain via backend (signed + nonce)
+ */
+export const submitPlayerScore = async (playerAddress, score, sessionId, accessToken, transactions = 1) => {
   try {
     console.log('📤 Submitting score to backend:', { playerAddress, score, sessionId, transactions });
 
-const response = await fetch(`${API_BASE_URL}/api/submit-score`, {
+    // Get server-minted nonce bound to this session/context
+const { jti, exp, tokenSig } = await getSubmitNonce(sessionId, accessToken);
+
+    // Prepare idempotency key and proof
+    const clientTs = Date.now();
+    const idempotencyKey = `${sessionId}|${score}|${clientTs}`;
+    const proof = await buildGameProof();
+
+const headers2 = { 'Content-Type': 'application/json' };
+    if (accessToken) headers2['Authorization'] = `Bearer ${accessToken}`;
+    const response = await fetch(`${API_BASE_URL}/api/submit-score`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': import.meta.env.VITE_API_KEY || 'nad-racer-secret-key-2024', // Fallback for development
-      },
+      headers: headers2,
       body: JSON.stringify({
         playerAddress,
         score,
         sessionId,
-        transactions
+        transactions,
+        jti,
+        tokenSig,
+        clientTs,
+        idempotencyKey,
+        proof
       })
     });
 
